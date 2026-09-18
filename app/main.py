@@ -22,6 +22,9 @@ async def lifespan(app):
     cfg = Config(str(Path(__file__).resolve().parent.parent / "alembic.ini"))
     cfg.set_main_option("sqlalchemy.url", get_settings().database_url)
     command.upgrade(cfg, "head")
+    if get_settings().seed_demo_data:
+        from . import seed
+        seed.run()
     yield
 
 
