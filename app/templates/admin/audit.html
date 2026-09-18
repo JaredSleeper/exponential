@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Audit log — Exponential{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow">Admin</p>
+    <h1 style="font-size:32px">Audit log</h1>
+    {% include "admin/_nav.html" %}
+    <div class="card" style="padding:0;overflow:auto">
+      <table class="t">
+        <thead><tr><th>When</th><th>Actor</th><th>Action</th><th>Target</th><th>Details</th></tr></thead>
+        <tbody>
+        {% for e in rows %}
+        <tr>
+          <td class="muted" style="white-space:nowrap">{{ e.created_at | ny_time("%b %-d %H:%M") }}</td>
+          <td>{{ e.actor_email or '—' }}</td>
+          <td><span class="badge dim">{{ e.action }}</span></td>
+          <td class="muted">{{ e.target_type }} {{ e.target_id[:8] }}</td>
+          <td class="muted small">{{ e.details }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="muted" style="text-align:center;padding:40px">Nothing recorded yet.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Applications — Exponential{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow">Admissions</p>
+    <h1 style="font-size:32px">Applications</h1>
+    {% include "admin/_nav.html" %}
+
+    <form method="get" class="card" style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;margin-bottom:24px">
+      <div><label class="f" style="margin-top:0">Status</label>
+        <select name="status">
+          <option value="">All</option>
+          {% for st in statuses %}<option value="{{ st }}" {{ 'selected' if st == status_filter }}>{{ st }}</option>{% endfor %}
+        </select></div>
+      <div><label class="f" style="margin-top:0">Referrer</label>
+        <input type="text" name="referrer" value="{{ referrer }}"></div>
+      <button class="btn" type="submit">Filter</button>
+    </form>
+
+    <div class="card" style="padding:0;overflow:auto">
+      <table class="t">
+        <thead><tr><th>Name</th><th>Email</th><th>Referrer</th><th>Status</th><th>Flags</th><th>Applied</th></tr></thead>
+        <tbody>
+        {% for a in rows %}
+        <tr>
+          <td><a href="/admin/applications/{{ a.id }}"><strong>{{ a.name }}</strong></a></td>
+          <td>{{ a.email }}</td>
+          <td>{{ a.referrer or '—' }}</td>
+          <td><span class="badge {{ 'warn' if a.status == 'waitlisted' else ('bad' if a.status == 'declined' else '') }}">{{ a.status }}</span></td>
+          <td>{% if a.suggest_gathering %}<span class="badge warn">invite to gathering</span>{% endif %}</td>
+          <td class="muted">{{ a.created_at | ny_time("%b %-d") }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="muted" style="text-align:center;padding:40px">No applications match.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

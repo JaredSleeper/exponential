@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Your profile — Exponential{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/vendor/cropper.min.css">{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap-narrow">
+    <p class="eyebrow">Your profile</p>
+    <h1 style="font-size:32px">Edit how members see you.</h1>
+
+    <h3 style="margin-top:36px">Photo</h3>
+    <div style="display:flex;gap:20px;align-items:center;margin-top:12px;flex-wrap:wrap">
+      {% if p.photo_key %}<img src="/media/{{ p.photo_key }}" style="width:96px;height:96px;border-radius:10px;object-fit:cover">{% endif %}
+      <form method="post" action="/members/photo" enctype="multipart/form-data" id="photoform">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <input type="hidden" name="crop" id="cropfield">
+        <input type="file" id="photofile" accept="image/jpeg,image/png,image/webp" style="font-size:14px">
+        <div class="crop-area" id="cropwrap" style="display:none"><img id="cropimg"></div>
+        <button class="btn btn-small btn-outline" type="submit" style="margin-top:10px">Upload</button>
+      </form>
+    </div>
+
+    <form method="post" action="/members/profile" style="margin-top:8px">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <label class="f">Name *</label>
+      <input type="text" name="display_name" required value="{{ p.display_name }}">
+      <label class="f">One-line introduction *</label>
+      <input type="text" name="headline" required value="{{ p.headline }}">
+      <div class="grid-2">
+        <div><label class="f">Role</label><input type="text" name="role" value="{{ p.role }}"></div>
+        <div><label class="f">Organization</label><input type="text" name="organization" value="{{ p.organization }}"></div>
+      </div>
+      <label class="f">Working on / exploring *</label>
+      <textarea name="working_on" required>{{ p.working_on }}</textarea>
+      <label class="f">Bio</label>
+      <textarea name="bio">{{ p.bio }}</textarea>
+
+      <label class="f">Interests</label>
+      <div style="margin:6px 0">
+        {% for t in suggested_tags %}
+        <label class="tag {{ 'on' if t in p.interests }}" style="cursor:pointer">
+          <input type="checkbox" name="interests" value="{{ t }}" {{ 'checked' if t in p.interests }} style="display:none">{{ t }}
+        </label>
+        {% endfor %}
+      </div>
+      <label class="f">Areas of expertise (comma-separated)</label>
+      <input type="text" name="expertise" value="{{ p.expertise | join(', ') }}">
+
+      <label class="f">Other members can come to me for…</label>
+      <textarea name="come_to_me_for" style="min-height:70px">{{ p.come_to_me_for }}</textarea>
+      <label class="f">I'd like to meet people who…</label>
+      <textarea name="like_to_meet" style="min-height:70px">{{ p.like_to_meet }}</textarea>
+      <label class="f">Outside AI, ask me about…</label>
+      <input type="text" name="outside_ai" value="{{ p.outside_ai }}">
+
+      <label class="f">Happy to</label>
+      <label class="check"><input type="checkbox" name="willing_host" {{ 'checked' if p.willing_host }}> Host a gathering</label>
+      <label class="check"><input type="checkbox" name="willing_present" {{ 'checked' if p.willing_present }}> Present at a salon</label>
+      <label class="check"><input type="checkbox" name="willing_organize" {{ 'checked' if p.willing_organize }}> Help organize</label>
+
+      <hr class="soft">
+      <label class="f">Website</label>
+      <input type="url" name="website" value="{{ p.website }}">
+      <label class="f">LinkedIn</label>
+      <input type="url" name="linkedin" value="{{ p.linkedin }}">
+
+      <label class="f">Contact methods shown via the Connect button</label>
+      <div id="contact-rows">
+        {% for c in p.contact_links %}
+        <div class="contact-row">
+          <input type="text" name="contact_label" value="{{ c.label }}" placeholder="Signal / Email / Telegram">
+          <input type="text" name="contact_url" value="{{ c.url }}" placeholder="Link, @handle, or address">
+          <button type="button" class="btn btn-small btn-outline" onclick="this.parentElement.remove()">✕</button>
+        </div>
+        {% endfor %}
+      </div>
+      <button type="button" class="btn btn-small btn-outline" id="add-contact">+ Add a contact method</button>
+      <label class="check" style="margin-top:16px"><input type="checkbox" name="show_email" {{ 'checked' if p.show_email }}> Show my sign-in email ({{ user.email }})</label>
+
+      <hr class="soft">
+      <label class="check"><input type="checkbox" name="directory_visible" {{ 'checked' if p.directory_visible }}> Include me in the member directory</label>
+      <p class="hint">You can hide your profile and keep every other member benefit.</p>
+
+      <div style="margin-top:30px"><button class="btn btn-accent" type="submit">Save profile</button></div>
+    </form>
+
+    <hr class="soft">
+    <h3>Account</h3>
+    <p class="muted small" style="margin:10px 0">Signed in as {{ user.email }}. To delete your account and profile, request removal — an organizer will confirm. What we retain is documented in our privacy note.</p>
+    <form method="post" action="/members/removal">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <input type="text" name="reason" placeholder="Optional note for the organizers">
+      <button class="btn btn-small btn-danger" type="submit" style="margin-top:10px">Request account removal</button>
+    </form>
+  </div>
+</section>
+
+<script src="/static/vendor/cropper.min.js"></script>
+<script>
+document.querySelectorAll('.tag input[type=checkbox]').forEach(cb => {
+  cb.addEventListener('change', () => cb.parentElement.classList.toggle('on', cb.checked));
+});
+document.getElementById('add-contact').addEventListener('click', () => {
+  const row = document.createElement('div');
+  row.className = 'contact-row';
+  row.innerHTML = '<input type="text" name="contact_label" placeholder="Signal / Email / Telegram">' +
+    '<input type="text" name="contact_url" placeholder="Link, @handle, or address">' +
+    '<button type="button" class="btn btn-small btn-outline" onclick="this.parentElement.remove()">✕</button>';
+  document.getElementById('contact-rows').appendChild(row);
+});
+let cropper = null;
+document.getElementById('photofile').addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const img = document.getElementById('cropimg');
+  img.src = URL.createObjectURL(f);
+  document.getElementById('cropwrap').style.display = 'block';
+  if (cropper) cropper.destroy();
+  cropper = new Cropper(img, {aspectRatio: 1, viewMode: 1, autoCropArea: 0.9});
+});
+document.getElementById('photoform').addEventListener('submit', () => {
+  if (cropper) {
+    const d = cropper.getData(true);
+    document.getElementById('cropfield').value = JSON.stringify({x: d.x, y: d.y, w: d.width, h: d.height});
+  }
+});
+</script>
+{% endblock %}

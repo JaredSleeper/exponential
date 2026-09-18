@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Express interest — Exponential{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap-narrow">
+    <p class="eyebrow">Express interest</p>
+    <h1 style="font-size:clamp(28px,4vw,40px)">Tell us about yourself.</h1>
+    <p class="lede" style="margin-top:16px">
+      Exponential is small and selective. This starts a conversation — it isn't
+      membership, and it doesn't guarantee one. We read every note by hand, and
+      we often begin by inviting promising applicants to a gathering.
+    </p>
+
+    {% if errors %}
+    <div class="flash error">{% for e in errors %}{{ e }}<br>{% endfor %}</div>
+    {% endif %}
+
+    <form method="post" action="/apply" class="card" style="margin-top:32px">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <label class="f">Name *</label>
+      <input type="text" name="name" required value="{{ form.name if form else '' }}">
+
+      <label class="f">Email *</label>
+      <input type="email" name="email" required value="{{ form.email if form else '' }}">
+
+      <label class="f">Role / company, if applicable</label>
+      <input type="text" name="role_company" value="{{ form.role_company if form else '' }}">
+
+      <label class="f">LinkedIn or personal website</label>
+      <input type="url" name="link" placeholder="https://" value="{{ form.link if form else '' }}">
+
+      <label class="f">What are you working on or exploring? *</label>
+      <textarea name="working_on" required>{{ form.working_on if form else '' }}</textarea>
+
+      <label class="f">Why do you want to join? *</label>
+      <textarea name="why_join" required>{{ form.why_join if form else '' }}</textarea>
+
+      <label class="f">Referrer, if any</label>
+      <input type="text" name="referrer" value="{{ form.referrer if form else '' }}">
+
+      <div style="margin-top:28px"><button class="btn btn-accent" type="submit">Submit</button></div>
+    </form>
+  </div>
+</section>
+{% endblock %}

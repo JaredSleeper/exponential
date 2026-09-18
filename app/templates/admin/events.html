@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Events — Exponential{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow">Admin</p>
+    <h1 style="font-size:32px">Events</h1>
+    {% include "admin/_nav.html" %}
+    <p class="muted">Registration, reminders, and attendee approvals happen on the external page (usually Luma). Never put residential addresses here — approved attendees receive those by email.</p>
+
+    <div class="card" style="margin-top:20px">
+      <h3>New event</h3>
+      <form method="post" action="/admin/events" enctype="multipart/form-data" style="margin-top:14px">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <div class="grid-2">
+          <div><label class="f" style="margin-top:0">Title</label><input type="text" name="title" required></div>
+          <div><label class="f" style="margin-top:0">Host</label><input type="text" name="host"></div>
+          <div><label class="f" style="margin-top:0">Date (ET)</label><input type="date" name="date" required></div>
+          <div><label class="f" style="margin-top:0">Time (ET)</label><input type="time" name="time" required></div>
+        </div>
+        <label class="f">Description</label>
+        <textarea name="description" style="min-height:70px"></textarea>
+        <div class="grid-2">
+          <div><label class="f">External registration link</label><input type="url" name="external_url" placeholder="https://lu.ma/…"></div>
+          <div><label class="f">Image (optional)</label><input type="file" name="image" accept="image/jpeg,image/png,image/webp"></div>
+        </div>
+        <input type="hidden" name="tz" value="America/New_York">
+        <button class="btn btn-accent" style="margin-top:18px">Create event</button>
+      </form>
+    </div>
+
+    <div class="card" style="padding:0;margin-top:24px;overflow:auto">
+      <table class="t">
+        <thead><tr><th>Event</th><th>When (ET)</th><th>Host</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        {% for ev in rows %}
+        <tr>
+          <td><strong>{{ ev.title }}</strong>{% if ev.external_url %}<div class="small"><a href="{{ ev.external_url }}" target="_blank" rel="noopener">{{ ev.external_url }}</a></div>{% endif %}</td>
+          <td class="muted">{{ ev.starts_at | ny_time }}</td>
+          <td>{{ ev.host or '—' }}</td>
+          <td><span class="badge {{ '' if ev.published else 'dim' }}">{{ 'published' if ev.published else 'hidden' }}</span></td>
+          <td><button class="btn btn-small btn-outline" onclick="document.getElementById('edit-{{ ev.id }}').style.display='block';this.style.display='none'">Edit</button></td>
+        </tr>
+        <tr id="edit-{{ ev.id }}" style="display:none"><td colspan="5">
+          <form method="post" action="/admin/events/{{ ev.id }}/edit" enctype="multipart/form-data">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <div class="grid-2">
+              <div><label class="f" style="margin-top:0">Title</label><input type="text" name="title" value="{{ ev.title }}"></div>
+              <div><label class="f" style="margin-top:0">Host</label><input type="text" name="host" value="{{ ev.host }}"></div>
+              <div><label class="f" style="margin-top:0">Date</label><input type="date" name="date" value="{{ ev.starts_at | ny_time('%Y-%m-%d') }}"></div>
+              <div><label class="f" style="margin-top:0">Time</label><input type="time" name="time" value="{{ ev.starts_at | ny_time('%H:%M') }}"></div>
+            </div>
+            <label class="f">Description</label><textarea name="description" style="min-height:60px">{{ ev.description }}</textarea>
+            <div class="grid-2">
+              <div><label class="f">Registration link</label><input type="url" name="external_url" value="{{ ev.external_url }}"></div>
+              <div><label class="f">Replace image</label><input type="file" name="image" accept="image/jpeg,image/png,image/webp"></div>
+            </div>
+            <label class="check"><input type="checkbox" name="published" {{ 'checked' if ev.published }}> Published</label>
+            <button class="btn btn-small btn-accent">Save</button>
+          </form>
+        </td></tr>
+        {% else %}
+        <tr><td colspan="5" class="muted" style="text-align:center;padding:40px">No events yet.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Settings — Exponential{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow">Admin</p>
+    <h1 style="font-size:32px">Settings</h1>
+    {% include "admin/_nav.html" %}
+
+    <div class="card" style="max-width:640px">
+      <form method="post" action="/admin/settings">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <label class="f" style="margin-top:0">Active member cap</label>
+        <input type="number" name="member_cap" value="{{ cap }}" min="1" style="max-width:160px">
+        <p class="hint">{{ seats }} seats currently in use. Raising the cap is an explicit admin action and is audited. You can't set it below seats in use.</p>
+
+        <label class="f">Signal group invite link</label>
+        <input type="url" name="signal_invite_url" value="{{ signal_url }}" placeholder="https://signal.group/…">
+        <p class="hint">Shown only to active members. Members opt in themselves — Signal membership must be approved/revoked inside Signal separately from this site.</p>
+
+        <label class="f">Suggested interest tags</label>
+        <textarea name="interest_tags" style="min-height:100px" placeholder="Comma-separated or JSON list">{{ interest_tags }}</textarea>
+        <p class="hint">Shown as one-tap options during onboarding; members can always add their own. Accepts a comma-separated list or a JSON array.</p>
+
+        <button class="btn btn-accent" style="margin-top:20px">Save settings</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

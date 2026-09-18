@@ -1,0 +1,10 @@
+<div class="admin-nav">
+  <a href="/admin" class="{{ 'here' if request.url.path == '/admin' }}">Overview</a>
+  <a href="/admin/applications" class="{{ 'here' if '/admin/applications' in request.url.path }}">Applications</a>
+  <a href="/admin/invitations" class="{{ 'here' if '/admin/invitations' in request.url.path }}">Invitations</a>
+  <a href="/admin/members" class="{{ 'here' if '/admin/members' in request.url.path }}">Members</a>
+  <a href="/admin/events" class="{{ 'here' if '/admin/events' in request.url.path }}">Events</a>
+  <a href="/admin/email" class="{{ 'here' if '/admin/email' in request.url.path }}">Email</a>
+  <a href="/admin/audit" class="{{ 'here' if '/admin/audit' in request.url.path }}">Audit</a>
+  <a href="/admin/settings" class="{{ 'here' if '/admin/settings' in request.url.path }}">Settings</a>
+</div>

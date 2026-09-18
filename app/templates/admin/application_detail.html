@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{{ a.name }} — Applications{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap">
+    {% include "admin/_nav.html" %}
+    <div class="grid-2">
+      <div class="card">
+        <p class="eyebrow" style="margin-bottom:6px">Application · <span class="badge">{{ a.status }}</span></p>
+        <h2>{{ a.name }}</h2>
+        <p class="muted">{{ a.email }}{% if a.role_company %} · {{ a.role_company }}{% endif %}</p>
+        {% if a.link %}<p style="margin-top:6px"><a href="{{ a.link }}" target="_blank" rel="noopener">{{ a.link }}</a></p>{% endif %}
+        {% if a.referrer %}<p class="small muted" style="margin-top:6px">Referred by {{ a.referrer }}</p>{% endif %}
+        <div class="kv"><div class="k">Working on / exploring</div><div class="v">{{ a.working_on }}</div></div>
+        <div class="kv"><div class="k">Why they want to join</div><div class="v">{{ a.why_join }}</div></div>
+        <p class="small muted">Applied {{ a.created_at | ny_time("%B %-d, %Y") }}</p>
+
+        <hr class="soft">
+        <div class="btn-row">
+          {% if a.status not in ('waitlisted',) %}
+          <form method="post" action="/admin/applications/{{ a.id }}/status"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="status" value="waitlisted"><button class="btn btn-small btn-outline">Waitlist</button></form>
+          {% endif %}
+          {% if a.status not in ('declined',) %}
+          <form method="post" action="/admin/applications/{{ a.id }}/status"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="status" value="declined"><button class="btn btn-small btn-danger">Decline</button></form>
+          {% endif %}
+          {% if a.status not in ('new',) %}
+          <form method="post" action="/admin/applications/{{ a.id }}/status"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="status" value="new"><button class="btn btn-small btn-outline">Back to new</button></form>
+          {% endif %}
+        </div>
+        <form method="post" action="/admin/applications/{{ a.id }}/gathering" style="margin-top:14px">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <button class="btn btn-small {{ 'btn-accent' if a.suggest_gathering else 'btn-outline' }}">
+            {{ '✓ Invite to a gathering first' if a.suggest_gathering else 'Flag: invite to a gathering first' }}</button>
+        </form>
+        <p class="hint">Private flag — this person should come to a salon or dinner before membership. Gathering attendance never creates membership automatically.</p>
+      </div>
+
+      <div>
+        <div class="card">
+          <h3>Send membership invitation</h3>
+          <form method="post" action="/admin/invitations" style="margin-top:14px">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <input type="hidden" name="application_id" value="{{ a.id }}">
+            <input type="hidden" name="email" value="{{ a.email }}">
+            <label class="f" style="margin-top:0">Welcome note (optional)</label>
+            <textarea name="note" style="min-height:70px" placeholder="A sentence they'll see with the invitation"></textarea>
+            <button class="btn btn-accent" style="margin-top:14px" type="submit">Invite {{ a.email }}</button>
+          </form>
+          {% for inv in invites %}
+          <p class="small muted" style="margin-top:10px">Invitation: <span class="badge">{{ inv.status }}</span> sent {{ inv.sent_at | ny_time("%b %-d") if inv.sent_at }}</p>
+          {% endfor %}
+        </div>
+
+        <div class="card" style="margin-top:20px">
+          <h3>Private admissions notes</h3>
+          <p class="hint">Never shown to members or included in exports.</p>
+          {% for n in notes %}
+          <div style="padding:10px 0;border-bottom:1px solid var(--line);font-size:14px">{{ n.body }}<div class="small muted">{{ n.created_at | ny_time("%b %-d") }}</div></div>
+          {% endfor %}
+          <form method="post" action="/admin/applications/{{ a.id }}/notes" style="margin-top:14px">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <textarea name="body" style="min-height:60px" placeholder="Add a private note"></textarea>
+            <button class="btn btn-small" style="margin-top:10px">Add note</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Exponential{% endblock %}</title>
+<meta name="description" content="Exponential — a New York community for people building, researching, and thoughtfully applying AI.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/main.css">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+{% block head %}{% endblock %}
+</head>
+<body>
+{% if s.environment != "production" and s.auth_provider == "dev" %}
+<div class="devbanner">Development mode — emails print to the server log; sign-in codes appear on screen.</div>
+{% endif %}
+<div class="wrap">
+  <nav class="nav">
+    <a class="brand" href="/">Exponential</a>
+    <div class="nav-links">
+      {% if is_active_member %}
+      <a href="/members">Home</a>
+      <a href="/directory">Directory</a>
+      <a href="/events">Gatherings</a>
+      <a href="/members/profile">Profile</a>
+      {% endif %}
+      {% if is_admin %}<a href="/admin">Admin</a>{% endif %}
+      {% if user %}
+      <form method="post" action="/auth/sign-out" style="display:inline">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <button style="background:none;border:none;color:var(--ink-soft);font-size:14px;cursor:pointer;padding:0">Sign out</button>
+      </form>
+      {% else %}
+      <a href="/apply">Express interest</a>
+      <a href="/auth/sign-in">Member sign-in</a>
+      {% endif %}
+    </div>
+  </nav>
+</div>
+
+<main>
+{% if notice %}<div class="wrap"><div class="flash notice">{{ notice }}</div></div>{% endif %}
+{% if error %}<div class="wrap"><div class="flash error">{{ error }}</div></div>{% endif %}
+{% block body %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <div class="wrap" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <span class="serif" style="font-size:16px">Exponential Collective</span>
+    <span>New York City · <a href="/apply">Express interest</a></span>
+  </div>
+</footer>
+</body>
+</html>

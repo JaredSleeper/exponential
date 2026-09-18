@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Member home — Exponential{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow">Member home</p>
+    <h1 style="font-size:clamp(28px,4vw,42px)">Hello, {{ p.display_name.split(' ')[0] if p and p.display_name else user.email }}.</h1>
+
+    <div class="grid-2" style="margin-top:36px">
+      <div class="card">
+        <p class="eyebrow" style="margin-bottom:8px">Next gathering</p>
+        {% if next_event %}
+        <h3>{{ next_event.title }}</h3>
+        <p class="serif muted" style="margin-top:6px">{{ next_event.starts_at | ny_time }}</p>
+        {% if next_event.host %}<p class="small muted">Hosted by {{ next_event.host }}</p>{% endif %}
+        {% if next_event.description %}<p style="margin-top:12px;font-size:15px">{{ next_event.description }}</p>{% endif %}
+        {% if next_event.external_url %}
+        <div style="margin-top:16px"><a class="btn btn-small btn-accent" href="{{ next_event.external_url }}" target="_blank" rel="noopener">Register</a></div>
+        {% endif %}
+        {% else %}
+        <p class="muted">Nothing on the calendar yet — new gatherings appear here.</p>
+        {% endif %}
+        <div style="margin-top:14px"><a class="small" href="/events">All gatherings →</a></div>
+      </div>
+
+      <div class="card">
+        <p class="eyebrow" style="margin-bottom:8px">Between gatherings</p>
+        <p class="muted" style="font-size:15px">The community conversation lives on Signal — opt in whenever you like. Signal membership is approved by a host separately from the website.</p>
+        {% if signal_url %}
+        <div style="margin-top:16px"><a class="btn btn-small btn-outline" href="{{ signal_url }}" target="_blank" rel="noopener">Join the Signal group</a></div>
+        {% else %}
+        <p class="hint" style="margin-top:10px">The Signal link isn't posted yet — ask your host.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div style="margin-top:44px;display:flex;justify-content:space-between;align-items:baseline">
+      <h2 style="font-size:24px">Members</h2>
+      <a href="/directory" class="small">Browse the full directory →</a>
+    </div>
+    {% if recent %}
+    <div class="dir-grid" style="margin-top:20px">
+      {% for r in recent %}
+      <a class="dir-card" href="/directory/{{ r.user_id }}">
+        {% if r.photo_key %}<img class="ph" src="/media/{{ r.photo_key }}" alt="{{ r.display_name }}">
+        {% else %}<div class="avatar">{{ (r.display_name or '?')[0] }}</div>{% endif %}
+        <div class="body">
+          <div class="name">{{ r.display_name }}</div>
+          <div class="role">{{ [r.role, r.organization] | select | join(' · ') }}</div>
+          <div class="head">{{ r.headline }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="muted" style="margin-top:16px">You're early — profiles will appear here as members join.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

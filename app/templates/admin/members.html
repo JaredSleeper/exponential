@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Members — Exponential{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow">Admissions</p>
+    <h1 style="font-size:32px">Members</h1>
+    {% include "admin/_nav.html" %}
+    <p class="muted">{{ seats }} of {{ cap }} seats in use · {{ outstanding }} outstanding invitations.</p>
+
+    <form method="get" style="margin:18px 0">
+      <select name="status" onchange="this.form.submit()">
+        <option value="">All statuses</option>
+        {% for st in ['invited','active','paused','alumni','declined'] %}
+        <option value="{{ st }}" {{ 'selected' if st == status_filter }}>{{ st }}</option>
+        {% endfor %}
+      </select>
+    </form>
+
+    <div class="card" style="padding:0;overflow:auto">
+      <table class="t">
+        <thead><tr><th>Member</th><th>Status</th><th>Cohost</th><th>Follow-up</th><th>Joined</th></tr></thead>
+        <tbody>
+        {% for m, u, p in rows %}
+        <tr>
+          <td><a href="/admin/members/{{ u.id }}"><strong>{{ p.display_name if p and p.display_name else u.email }}</strong></a>
+            <div class="small muted">{{ u.email }}{% if u.is_admin %} · admin{% endif %}</div></td>
+          <td><span class="badge {{ '' if m.status == 'active' else ('warn' if m.status == 'invited' else 'dim') }}">{{ m.status }}</span>
+            {% if p and not p.directory_visible %}<span class="badge dim">hidden</span>{% endif %}</td>
+          <td>{{ m.welcome_cohost or '—' }}</td>
+          <td>{% if m.needs_followup %}<span class="badge warn">follow up</span>{% else %}—{% endif %}</td>
+          <td class="muted">{{ m.created_at | ny_time("%b %-d") }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="muted" style="text-align:center;padding:40px">No members yet.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

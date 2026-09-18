@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Member sign-in — Exponential{% endblock %}
+{% block head %}
+<script async crossorigin="anonymous"
+  data-clerk-publishable-key="{{ clerk_pk }}"
+  src="{{ clerk_js_url }}"></script>
+{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap-narrow" style="max-width:460px;padding-top:40px">
+    <div id="clerk-status" class="muted" style="margin-bottom:16px">Loading sign-in…</div>
+    <div id="clerk-signin"></div>
+  </div>
+</section>
+<script>
+(async () => {
+  const status = document.getElementById('clerk-status');
+  try {
+    await Clerk.load();
+    if (Clerk.session) {
+      status.textContent = 'Signing you in…';
+      const token = await Clerk.session.getToken();
+      const resp = await fetch('/auth/clerk', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({token, next: {{ next | tojson }}})
+      });
+      const data = await resp.json();
+      if (data.ok) { location.href = data.next; return; }
+      await Clerk.signOut();
+      status.textContent = data.error || 'Sign-in failed — try again.';
+      Clerk.mountSignIn(document.getElementById('clerk-signin'), {});
+    } else {
+      status.textContent = '';
+      Clerk.mountSignIn(document.getElementById('clerk-signin'), {
+        afterSignInUrl: window.location.href,
+        afterSignUpUrl: window.location.href,
+      });
+    }
+  } catch (e) {
+    status.textContent = 'Sign-in is unavailable right now.';
+  }
+})();
+</script>
+{% endblock %}

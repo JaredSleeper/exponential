@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Invitations — Exponential{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow">Admissions</p>
+    <h1 style="font-size:32px">Invitations</h1>
+    {% include "admin/_nav.html" %}
+    <p class="muted">{{ seats }} of {{ cap }} seats in use (active + invited + outstanding invitations).</p>
+
+    <div class="card" style="margin-top:20px">
+      <h3>New invitation</h3>
+      <form method="post" action="/admin/invitations" class="grid-2" style="margin-top:14px;align-items:end">
+        <div><label class="f" style="margin-top:0">Email</label><input type="email" name="email" required></div>
+        <div><label class="f" style="margin-top:0">Welcome note (optional)</label><input type="text" name="note"></div>
+        <div><button class="btn btn-accent" type="submit">Send invitation</button></div>
+      </form>
+      <p class="hint">Links are personal, single-use, and expire after {{ s.invite_ttl_days }} days. Sending to an email with a pending invitation resends the existing link instead of duplicating.</p>
+    </div>
+
+    <div class="card" style="padding:0;margin-top:24px;overflow:auto">
+      <table class="t">
+        <thead><tr><th>Email</th><th>Status</th><th>Sent</th><th>Expires</th><th></th></tr></thead>
+        <tbody>
+        {% for inv in rows %}
+        <tr>
+          <td><strong>{{ inv.email }}</strong>{% if inv.note %}<div class="small muted">“{{ inv.note }}”</div>{% endif %}</td>
+          <td><span class="badge {{ 'bad' if inv.status == 'revoked' else ('dim' if inv.status == 'redeemed' or inv.expires_at <= now else '') }}">
+            {{ inv.status }}{% if inv.status == 'pending' and inv.expires_at <= now %} · expired{% endif %}</span></td>
+          <td class="muted">{{ inv.sent_at | ny_time("%b %-d") if inv.sent_at }}</td>
+          <td class="muted">{{ inv.expires_at | ny_time("%b %-d") }}</td>
+          <td>
+            {% if inv.status == 'pending' %}
+            <form method="post" action="/admin/invitations/{{ inv.id }}/resend" style="display:inline"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn btn-small btn-outline">Resend</button></form>
+            <form method="post" action="/admin/invitations/{{ inv.id }}/revoke" style="display:inline"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn btn-small btn-danger">Revoke</button></form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="muted" style="text-align:center;padding:40px">No invitations yet.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Gatherings — Exponential{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap-narrow">
+    <p class="eyebrow">Gatherings</p>
+    <h1 style="font-size:clamp(28px,4vw,40px)">Upcoming</h1>
+    <p class="muted" style="margin-top:10px">Registration happens on the event's own page (usually Luma). Venues — especially residential addresses — are shared only with confirmed attendees.</p>
+
+    {% if upcoming %}
+    <div style="margin-top:32px;display:grid;gap:22px">
+      {% for ev in upcoming %}
+      <div class="card event-card">
+        {% if ev.image_key %}<img src="/media/{{ ev.image_key }}" style="width:150px;border-radius:8px;object-fit:cover">{% endif %}
+        <div>
+          <div class="when" style="font-size:17px">{{ ev.starts_at | ny_time }}</div>
+          <h3 style="margin-top:8px">{{ ev.title }}</h3>
+          {% if ev.host %}<p class="small muted">Hosted by {{ ev.host }}</p>{% endif %}
+          {% if ev.description %}<p style="margin-top:10px">{{ ev.description }}</p>{% endif %}
+          {% if ev.external_url %}<div style="margin-top:14px"><a class="btn btn-small" href="{{ ev.external_url }}" target="_blank" rel="noopener">Register</a></div>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty card" style="margin-top:32px">Nothing scheduled yet — check back soon.</div>
+    {% endif %}
+
+    {% if past %}
+    <h2 style="font-size:22px;margin-top:56px">Past</h2>
+    <ul class="list-plain" style="margin-top:12px">
+      {% for ev in past %}
+      <li><strong>{{ ev.title }}</strong> <span class="muted">· {{ ev.starts_at | ny_time("%B %-d, %Y") }}</span></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

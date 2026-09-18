@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Check your email — Exponential{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap-narrow" style="max-width:460px;padding-top:40px">
+    <p class="eyebrow">Check your inbox</p>
+    <h1 style="font-size:32px">Enter your code.</h1>
+    <p class="muted" style="margin:14px 0 8px">We sent a 6-digit code to <strong>{{ email }}</strong>.</p>
+    {% if dev_code %}
+    <div class="flash notice" style="font-size:13px">DEV MODE (console email adapter): your code is <strong>{{ dev_code }}</strong></div>
+    {% endif %}
+    {% if error %}<div class="flash error">{{ error }}</div>{% endif %}
+    <form method="post" action="/auth/verify" style="margin-top:20px">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <input type="hidden" name="email" value="{{ email }}">
+      <input type="hidden" name="next" value="{{ next }}">
+      <label class="f">Code</label>
+      <input type="text" name="code" required autofocus inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+             style="letter-spacing:.4em;font-size:22px;text-align:center">
+      <div style="margin-top:22px"><button class="btn btn-accent" type="submit" style="width:100%">Sign in</button></div>
+    </form>
+  </div>
+</section>
+{% endblock %}

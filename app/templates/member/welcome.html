@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Welcome — Exponential{% endblock %}
+{% block body %}
+<section class="section" style="padding-top:72px">
+  <div class="wrap-narrow">
+    <p class="eyebrow">Welcome</p>
+    <h1>You're in, {{ p.display_name.split(' ')[0] if p and p.display_name else 'friend' }}.</h1>
+    <p class="lede" style="margin-top:20px">
+      Exponential runs on small rooms and generous people. Here's how to start:
+    </p>
+
+    <div style="margin-top:36px;display:grid;gap:22px">
+      <div class="card">
+        <h3>Come to a gathering</h3>
+        {% if events %}
+        <p class="muted" style="margin-top:8px">Next up: <strong>{{ events[0].title }}</strong> — {{ events[0].starts_at | ny_time }}{% if events[0].host %}, hosted by {{ events[0].host }}{% endif %}.</p>
+        {% if events[0].external_url %}<div style="margin-top:12px"><a class="btn btn-small" href="{{ events[0].external_url }}" target="_blank" rel="noopener">Register</a></div>{% endif %}
+        {% else %}
+        <p class="muted" style="margin-top:8px">The next gathering will appear on your <a href="/members">member home</a>.</p>
+        {% endif %}
+      </div>
+
+      <div class="card">
+        <h3>Meet the members</h3>
+        <p class="muted" style="margin-top:8px">Browse the directory — find someone working on a question you share, or someone you met at dinner whose name slipped away.</p>
+        <div style="margin-top:12px"><a class="btn btn-small btn-outline" href="/directory">Explore the directory</a></div>
+      </div>
+
+      <div class="card">
+        <h3>Join the conversation on Signal</h3>
+        <p class="muted" style="margin-top:8px">
+          Between gatherings we talk on Signal. Joining is your choice — and note
+          that Signal membership is approved separately from the website, so there
+          may be a short wait while a host adds you.
+        </p>
+        {% if signal_url %}
+        <div style="margin-top:12px"><a class="btn btn-small btn-outline" href="{{ signal_url }}" target="_blank" rel="noopener">Join the Signal group</a></div>
+        {% else %}
+        <p class="hint" style="margin-top:8px">A host will share the group link at your first gathering.</p>
+        {% endif %}
+      </div>
+
+      <div class="card">
+        <h3>How to participate</h3>
+        <p class="muted" style="margin-top:8px">
+          RSVP honestly and come curious. Offer what you know — everyone here was
+          invited because they have something to give. If you'd like to host or
+          present, say so on your profile and a cohost will find you.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

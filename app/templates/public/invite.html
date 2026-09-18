@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Your invitation — Exponential{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap-narrow" style="padding-top:40px">
+    {% if state == "valid" %}
+      <p class="eyebrow">Personal invitation</p>
+      <h1 style="font-size:clamp(28px,4vw,40px)">You're invited to Exponential.</h1>
+      {% if note %}
+      <div class="card" style="margin:24px 0;font-family:var(--serif);font-size:18px;font-style:italic">"{{ note }}"</div>
+      {% endif %}
+      <p class="lede" style="margin-top:18px">
+        This invitation is for <strong>{{ email }}</strong>. To accept it, sign in
+        (or create your account) with exactly that email address — you'll verify
+        it along the way. The link is single-use and expires.
+      </p>
+      <div class="btn-row" style="margin-top:28px">
+        <a class="btn btn-accent" href="/auth/sign-in?next=/invite/{{ token }}">Continue with {{ email }}</a>
+      </div>
+      {% if user %}
+      <form method="post" action="/invite/{{ token }}/claim" style="margin-top:20px">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <button class="btn btn-outline" type="submit">Accept invitation as {{ user.email }}</button>
+      </form>
+      {% endif %}
+
+    {% elif state == "expired" %}
+      <p class="eyebrow">Expired link</p>
+      <h1 style="font-size:clamp(28px,4vw,40px)">This invitation has expired.</h1>
+      <p class="lede" style="margin-top:18px">
+        Invitation links are valid for a limited time. If you received this at
+        <strong>{{ email }}</strong>, reply to your invitation email or contact your
+        host — an organizer can send a fresh link.
+      </p>
+
+    {% elif state == "revoked" %}
+      <p class="eyebrow">Revoked</p>
+      <h1 style="font-size:clamp(28px,4vw,40px)">This invitation is no longer active.</h1>
+      <p class="lede" style="margin-top:18px">It may have been withdrawn or replaced. Contact your host if you think this is a mistake.</p>
+
+    {% elif state == "redeemed" %}
+      <p class="eyebrow">Already used</p>
+      <h1 style="font-size:clamp(28px,4vw,40px)">This invitation was already accepted.</h1>
+      <p class="lede" style="margin-top:18px">
+        Each link works once. If it's yours, <a href="/auth/sign-in">sign in</a> —
+        your membership is waiting.
+      </p>
+
+    {% elif state == "mismatch" %}
+      <p class="eyebrow">Wrong email</p>
+      <h1 style="font-size:clamp(28px,4vw,40px)">This invitation belongs to a different email.</h1>
+      <p class="lede" style="margin-top:18px">
+        You're signed in as <strong>{{ signed_in_email }}</strong>, but this invitation is for
+        <strong>{{ invited_email }}</strong>. Sign out and sign back in with the invited address.
+      </p>
+      <form method="post" action="/auth/sign-out" style="margin-top:24px">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <button class="btn btn-outline" type="submit">Sign out</button>
+      </form>
+
+    {% elif state == "capacity" %}
+      <p class="eyebrow">At capacity</p>
+      <h1 style="font-size:clamp(28px,4vw,40px)">We're at our membership cap.</h1>
+      <p class="lede" style="margin-top:18px">{{ detail or "The community is full right now." }} Your invitation is still valid — please try again shortly or contact your host.</p>
+
+    {% else %}
+      <p class="eyebrow">Not found</p>
+      <h1 style="font-size:clamp(28px,4vw,40px)">That link doesn't look right.</h1>
+      <p class="lede" style="margin-top:18px">Double-check the link from your invitation email, or ask your host to resend it.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

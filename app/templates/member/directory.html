@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Directory — Exponential{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow">Member directory</p>
+    <h1 style="font-size:clamp(28px,4vw,40px)">{{ total }} member{{ 's' if total != 1 }}</h1>
+
+    <form method="get" action="/directory" class="card" style="margin-top:26px;display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:12px;align-items:end">
+      <div>
+        <label class="f" style="margin-top:0">Search</label>
+        <input type="text" name="q" value="{{ q }}" placeholder="Name, org, interest, what they work on…">
+      </div>
+      <div>
+        <label class="f" style="margin-top:0">Interest</label>
+        <select name="interest">
+          <option value="">Any</option>
+          {% for t in suggested_tags %}<option value="{{ t }}" {{ 'selected' if t == interest }}>{{ t }}</option>{% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="f" style="margin-top:0">Expertise</label>
+        <input type="text" name="expertise" value="{{ expertise }}" placeholder="e.g. policy">
+      </div>
+      <button class="btn" type="submit">Filter</button>
+    </form>
+    {% if q or interest or expertise %}
+    <p class="small muted" style="margin-top:12px">
+      {{ profiles | length }} result{{ 's' if profiles | length != 1 }} ·
+      <a href="/directory">Reset filters</a>
+    </p>
+    {% endif %}
+
+    {% if profiles %}
+    <div class="dir-grid">
+      {% for p in profiles %}
+      <a class="dir-card" href="/directory/{{ p.user_id }}">
+        {% if p.photo_key %}
+        <img class="ph" src="/media/{{ p.photo_key }}" alt="{{ p.display_name }}">
+        {% else %}
+        <div class="avatar">{{ (p.display_name or '?')[0] }}</div>
+        {% endif %}
+        <div class="body">
+          <div class="name">{{ p.display_name }}</div>
+          {% if p.role or p.organization %}<div class="role">{{ [p.role, p.organization] | select | join(' · ') }}</div>{% endif %}
+          <div class="head">{{ p.headline }}</div>
+          {% if p.interests %}
+          <div class="ints">{% for t in p.interests[:4] %}<span class="tag tag-static" style="font-size:11px;padding:2px 9px">{{ t }}</span>{% endfor %}</div>
+          {% endif %}
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty card" style="margin-top:32px">
+      <p class="serif" style="font-size:20px">No members match.</p>
+      <p class="muted" style="margin-top:8px">Try a different search, or <a href="/directory">clear the filters</a>.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

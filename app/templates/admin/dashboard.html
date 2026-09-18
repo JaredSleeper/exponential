@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Admin — Exponential{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow">Admin</p>
+    <h1 style="font-size:32px">Overview</h1>
+    {% include "admin/_nav.html" %}
+
+    <div class="stat-grid">
+      <div class="stat"><div class="n">{{ stats.active }}<span class="muted" style="font-size:16px"> / {{ stats.cap }}</span></div><div class="l">Active members / cap</div></div>
+      <div class="stat"><div class="n">{{ stats.seats }}</div><div class="l">Seats in use</div></div>
+      <div class="stat"><div class="n">{{ stats.outstanding_invites }}</div><div class="l">Outstanding invitations</div></div>
+      <div class="stat"><div class="n">{{ stats.new_applications }}</div><div class="l">New applications</div></div>
+      <div class="stat"><div class="n {{ '' if stats.failed_emails == 0 else '' }}" style="{{ 'color:var(--danger)' if stats.failed_emails }}">{{ stats.failed_emails }}</div><div class="l">Failed emails</div></div>
+      <div class="stat"><div class="n" style="{{ 'color:var(--danger)' if stats.open_removals }}">{{ stats.open_removals }}</div><div class="l">Removal requests</div></div>
+    </div>
+
+    {% if stats.open_removals %}
+    <div class="card"><strong>Removal requests</strong> are open — handle them from a member's page, and mark them done here once processed.</div>
+    {% endif %}
+
+    <div class="card" style="margin-top:24px">
+      <h3>Exports</h3>
+      <div class="btn-row" style="margin-top:12px">
+        <a class="btn btn-small btn-outline" href="/admin/export/members.csv">Members CSV</a>
+        <a class="btn btn-small btn-outline" href="/admin/export/applications.csv">Applications CSV</a>
+      </div>
+      <p class="hint" style="margin-top:12px">Exports contain membership and application records only — private admissions notes are never included.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

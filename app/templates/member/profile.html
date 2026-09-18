@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}{{ p.display_name if p else 'Not found' }} — Exponential{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap-narrow">
+    {% if missing %}
+    <div class="empty card"><p class="serif" style="font-size:20px">Profile not available.</p>
+      <p class="muted" style="margin-top:8px"><a href="/directory">Back to the directory</a></p></div>
+    {% else %}
+    <div class="profile-head">
+      <div class="ph">
+        {% if p.photo_key %}<img src="/media/{{ p.photo_key }}" alt="{{ p.display_name }}" style="border-radius:10px">
+        {% else %}<div class="avatar" style="border-radius:10px">{{ (p.display_name or '?')[0] }}</div>{% endif %}
+      </div>
+      <div>
+        <h1 style="font-size:36px">{{ p.display_name }}</h1>
+        {% if p.role or p.organization %}<p class="muted">{{ [p.role, p.organization] | select | join(' · ') }}</p>{% endif %}
+        <p class="serif-prose" style="margin-top:14px">{{ p.headline }}</p>
+
+        <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          {% if p.contact_links or p.show_email or p.website or p.linkedin %}
+          <button class="btn btn-small btn-accent" id="connect-btn">Connect</button>
+          {% endif %}
+          {% if p.website %}<a class="btn btn-small btn-outline" href="{{ p.website }}" target="_blank" rel="noopener">Website</a>{% endif %}
+          {% if p.linkedin %}<a class="btn btn-small btn-outline" href="{{ p.linkedin }}" target="_blank" rel="noopener">LinkedIn</a>{% endif %}
+          {% if self_view %}<a class="btn btn-small btn-outline" href="/members/profile">Edit profile</a>{% endif %}
+        </div>
+        <div id="connect-panel" class="card" style="display:none;margin-top:16px;padding:18px">
+          <p class="small muted" style="margin-bottom:10px">{{ p.display_name.split(' ')[0] }} has chosen to share:</p>
+          {% if p.show_email %}<div class="kv" style="margin:8px 0"><div class="v"><a href="mailto:{{ owner.email }}">{{ owner.email }}</a></div></div>{% endif %}
+          {% for c in p.contact_links %}
+          <div class="kv" style="margin:8px 0">
+            <div class="k">{{ c.label }}</div>
+            <div class="v">{% if c.url.startswith('http') %}<a href="{{ c.url }}" target="_blank" rel="noopener">{{ c.url }}</a>{% else %}{{ c.url }}{% endif %}</div>
+          </div>
+          {% endfor %}
+        </div>
+
+        {% if p.interests %}<div style="margin-top:18px">{% for t in p.interests %}<span class="tag tag-static">{{ t }}</span>{% endfor %}</div>{% endif %}
+      </div>
+    </div>
+
+    <hr class="soft">
+    {% if p.working_on %}<div class="kv"><div class="k">Working on / exploring</div><div class="v serif-prose" style="font-size:17px">{{ p.working_on }}</div></div>{% endif %}
+    {% if p.bio %}<div class="kv"><div class="k">Bio</div><div class="v">{{ p.bio }}</div></div>{% endif %}
+    {% if p.expertise %}<div class="kv"><div class="k">Expertise</div><div class="v">{{ p.expertise | join(', ') }}</div></div>{% endif %}
+    {% if p.come_to_me_for %}<div class="kv"><div class="k">Come to me for</div><div class="v">{{ p.come_to_me_for }}</div></div>{% endif %}
+    {% if p.like_to_meet %}<div class="kv"><div class="k">I'd like to meet people who</div><div class="v">{{ p.like_to_meet }}</div></div>{% endif %}
+    {% if p.outside_ai %}<div class="kv"><div class="k">Outside AI, ask me about</div><div class="v">{{ p.outside_ai }}</div></div>{% endif %}
+    {% if p.willing_host or p.willing_present or p.willing_organize %}
+    <div class="kv"><div class="k">Happy to</div><div class="v">
+      {{ ['host a gathering' if p.willing_host, 'present at a salon' if p.willing_present, 'help organize' if p.willing_organize] | select | join(' · ') }}
+    </div></div>
+    {% endif %}
+    {% endif %}
+  </div>
+</section>
+<script>
+const b = document.getElementById('connect-btn');
+if (b) b.addEventListener('click', () => {
+  const el = document.getElementById('connect-panel');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+});
+</script>
+{% endblock %}

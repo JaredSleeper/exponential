@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Preview — Exponential{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap-narrow">
+    <div class="steps">Final step · {{ progress }}% complete</div>
+    <div class="progress"><div style="width:{{ progress }}%"></div></div>
+    <p class="eyebrow">Review</p>
+    <h2>How other members will see you.</h2>
+    <p class="muted" style="margin-top:10px">This is your directory profile. Take a look — publish when it feels right.</p>
+
+    <div class="card" style="margin-top:28px">
+      <div style="display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap">
+        {% if p.photo_key %}
+        <img src="/media/{{ p.photo_key }}" style="width:120px;height:120px;object-fit:cover;border-radius:10px">
+        {% else %}
+        <div class="avatar" style="width:120px;height:120px;border-radius:10px;font-size:40px">{{ (p.display_name or '?')[0] }}</div>
+        {% endif %}
+        <div style="flex:1;min-width:240px">
+          <h3>{{ p.display_name or 'Your name' }}</h3>
+          <div class="small muted">{{ [p.role, p.organization] | select | join(' · ') }}</div>
+          <p style="margin-top:8px">{{ p.headline }}</p>
+          {% if p.interests %}<div style="margin-top:10px">{% for t in p.interests %}<span class="tag tag-static">{{ t }}</span>{% endfor %}</div>{% endif %}
+        </div>
+      </div>
+      {% if p.working_on %}<div class="kv"><div class="k">Working on</div><div class="v">{{ p.working_on }}</div></div>{% endif %}
+    </div>
+
+    {% if missing %}
+    <div class="flash error" style="margin-top:24px">Before publishing, add: {{ missing | join(', ') }}.</div>
+    <div class="btn-row"><a class="btn btn-outline" href="/onboarding">Go back</a></div>
+    {% else %}
+    <form method="post" action="/onboarding/publish" style="margin-top:28px">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <div class="btn-row">
+        <button class="btn btn-accent" type="submit">Publish my profile &amp; join</button>
+        <a class="btn btn-outline" href="/onboarding">Keep editing</a>
+      </div>
+    </form>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

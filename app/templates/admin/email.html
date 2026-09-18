@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Email — Exponential{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow">Admin</p>
+    <h1 style="font-size:32px">Email outbox</h1>
+    {% include "admin/_nav.html" %}
+    <p class="muted">Every transactional email is recorded here. Failed sends can be retried safely — a retry re-sends the same message, it never creates a new invitation.</p>
+
+    <div class="card" style="padding:0;margin-top:24px;overflow:auto">
+      <table class="t">
+        <thead><tr><th>To</th><th>Kind</th><th>Subject</th><th>Status</th><th>Attempts</th><th>Sent</th><th></th></tr></thead>
+        <tbody>
+        {% for m in rows %}
+        <tr>
+          <td>{{ m.to_email }}</td>
+          <td><span class="badge dim">{{ m.kind }}</span></td>
+          <td>{{ m.subject }}</td>
+          <td><span class="badge {{ 'bad' if m.status == 'failed' else ('warn' if m.status in ('pending','skipped') else '') }}">{{ m.status }}</span>
+            {% if m.error %}<div class="small" style="color:var(--danger)">{{ m.error[:120] }}</div>{% endif %}</td>
+          <td class="muted">{{ m.attempts }}</td>
+          <td class="muted">{{ m.sent_at | ny_time("%b %-d %H:%M") if m.sent_at }}</td>
+          <td>{% if m.status in ('failed','skipped') %}
+            <form method="post" action="/admin/email/{{ m.id }}/retry"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn btn-small btn-outline">Retry</button></form>
+          {% endif %}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="muted" style="text-align:center;padding:40px">No email sent yet.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

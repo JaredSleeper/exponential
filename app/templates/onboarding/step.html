@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}Onboarding — Exponential{% endblock %}
+{% block head %}
+{% if step == 2 %}<link rel="stylesheet" href="/static/vendor/cropper.min.css">{% endif %}
+{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap-narrow">
+    <div class="steps">Step {{ step }} of 4 · {{ progress }}% complete</div>
+    <div class="progress"><div style="width:{{ progress }}%"></div></div>
+
+    {% if step == 1 %}
+    <p class="eyebrow">Welcome — let's set up your profile</p>
+    <h2>The essentials</h2>
+    <form method="post" action="/onboarding/save" style="margin-top:20px">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <input type="hidden" name="step" value="1">
+      <label class="f">Your name *</label>
+      <input type="text" name="display_name" required maxlength="120" value="{{ p.display_name }}">
+      <label class="f">One-line introduction *</label>
+      <input type="text" name="headline" required maxlength="200" value="{{ p.headline }}"
+             placeholder="e.g. Building evaluation tools for scientific AI">
+      <div class="hint">This appears under your name in the directory.</div>
+      <label class="f">Role</label>
+      <input type="text" name="role" maxlength="120" value="{{ p.role }}">
+      <label class="f">Organization</label>
+      <input type="text" name="organization" maxlength="120" value="{{ p.organization }}">
+      <div style="margin-top:28px"><button class="btn btn-accent" type="submit">Save &amp; continue</button></div>
+    </form>
+
+    {% elif step == 2 %}
+    <p class="eyebrow">Your headshot</p>
+    <h2>A photo other members will recognize.</h2>
+    <p class="muted" style="margin-top:10px">A clear, recent photo of you — it'll show in the member directory. JPEG, PNG, or WebP, under 8 MB. Metadata is stripped on upload.</p>
+    {% if p.photo_key %}
+    <div style="margin:20px 0"><img src="/media/{{ p.photo_key }}" style="width:140px;border-radius:10px"></div>
+    {% endif %}
+    <form method="post" action="/onboarding/photo" enctype="multipart/form-data" id="photoform" style="margin-top:16px">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <input type="hidden" name="crop" id="cropfield">
+      <input type="file" id="photofile" accept="image/jpeg,image/png,image/webp" style="font-size:14px">
+      <div class="crop-area" id="cropwrap" style="display:none"><img id="cropimg"></div>
+      <div class="btn-row" style="margin-top:18px">
+        <button class="btn btn-accent" type="submit">{% if p.photo_key %}Replace photo{% else %}Upload photo{% endif %}</button>
+        <a class="btn btn-outline" href="/onboarding?step=3">{% if p.photo_key %}Continue{% else %}Skip for now{% endif %}</a>
+      </div>
+    </form>
+
+    {% elif step == 3 %}
+    <p class="eyebrow">What you're into</p>
+    <h2>Help members find you.</h2>
+    <form method="post" action="/onboarding/save" style="margin-top:20px">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <input type="hidden" name="step" value="3">
+      <label class="f">What are you working on or exploring? *</label>
+      <textarea name="working_on" required>{{ p.working_on }}</textarea>
+      <label class="f">Interests</label>
+      <div style="margin:6px 0">
+        {% for t in suggested_tags %}
+        <label class="tag {{ 'on' if t in p.interests }}" style="cursor:pointer">
+          <input type="checkbox" name="interests" value="{{ t }}" {{ 'checked' if t in p.interests }} style="display:none">{{ t }}
+        </label>
+        {% endfor %}
+      </div>
+      <label class="f">Other interests (comma-separated)</label>
+      <input type="text" name="extra_interests" placeholder="e.g. mechanistic interp, urbanism">
+      <label class="f">Areas of expertise (comma-separated)</label>
+      <input type="text" name="expertise" value="{{ p.expertise | join(', ') }}" placeholder="e.g. GPU infrastructure, policy">
+      <label class="f">Short bio</label>
+      <textarea name="bio">{{ p.bio }}</textarea>
+      <label class="f">Other members can come to me for…</label>
+      <textarea name="come_to_me_for" style="min-height:70px">{{ p.come_to_me_for }}</textarea>
+      <label class="f">I'd like to meet people who…</label>
+      <textarea name="like_to_meet" style="min-height:70px">{{ p.like_to_meet }}</textarea>
+      <label class="f">Outside AI, ask me about…</label>
+      <input type="text" name="outside_ai" value="{{ p.outside_ai }}">
+      <label class="f">Happy to</label>
+      <label class="check"><input type="checkbox" name="willing_host" {{ 'checked' if p.willing_host }}> Host a gathering</label>
+      <label class="check"><input type="checkbox" name="willing_present" {{ 'checked' if p.willing_present }}> Present at a salon</label>
+      <label class="check"><input type="checkbox" name="willing_organize" {{ 'checked' if p.willing_organize }}> Help organize</label>
+      <div style="margin-top:28px"><button class="btn btn-accent" type="submit">Save &amp; continue</button></div>
+    </form>
+
+    {% elif step == 4 %}
+    <p class="eyebrow">Almost done</p>
+    <h2>Contact preferences &amp; norms.</h2>
+    <form method="post" action="/onboarding/save" style="margin-top:20px">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <input type="hidden" name="step" value="4">
+      <label class="f">Website</label>
+      <input type="url" name="website" value="{{ p.website }}" placeholder="https://">
+      <label class="f">LinkedIn</label>
+      <input type="url" name="linkedin" value="{{ p.linkedin }}" placeholder="https://">
+
+      <label class="f">Contact methods shown to members</label>
+      <p class="hint">Your sign-in email is private by default. Choose exactly what the "Connect" button reveals.</p>
+      <div id="contact-rows">
+        {% for c in p.contact_links %}
+        <div class="contact-row">
+          <input type="text" name="contact_label" placeholder="Signal / Email / Telegram" value="{{ c.label }}">
+          <input type="text" name="contact_url" placeholder="Link, @handle, or address" value="{{ c.url }}">
+          <button type="button" class="btn btn-small btn-outline" onclick="this.parentElement.remove()">✕</button>
+        </div>
+        {% endfor %}
+      </div>
+      <button type="button" class="btn btn-small btn-outline" id="add-contact">+ Add a contact method</button>
+      <label class="check" style="margin-top:16px"><input type="checkbox" name="show_email" {{ 'checked' if p.show_email }}> Also show my sign-in email ({{ user.email }})</label>
+
+      <hr class="soft">
+      <label class="f">Community norms *</label>
+      <div class="card" style="font-size:15px">
+        <p><strong>Chatham House.</strong> What's said in the room stays in the room; what's learned can leave, never attributed.</p>
+        <p style="margin-top:10px"><strong>Generosity.</strong> Come to give, not just to take. Offer help, introductions, and attention freely.</p>
+        <p style="margin-top:10px"><strong>Presence.</strong> Small rooms work because people show up. RSVP honestly; arrive curious.</p>
+        <p style="margin-top:10px"><strong>No pitching.</strong> Members aren't a captive audience. Share work when invited.</p>
+      </div>
+      <label class="check" style="margin-top:16px"><input type="checkbox" name="norms_accepted" {{ 'checked' if p.norms_accepted_at }} required> I accept these norms *</label>
+      <div style="margin-top:28px"><button class="btn btn-accent" type="submit">Preview how members will see you</button></div>
+    </form>
+    {% endif %}
+  </div>
+</section>
+
+<script>
+// tag picker
+document.querySelectorAll('.tag input[type=checkbox]').forEach(cb => {
+  cb.addEventListener('change', () => cb.parentElement.classList.toggle('on', cb.checked));
+});
+// dynamic contact rows
+const addBtn = document.getElementById('add-contact');
+if (addBtn) addBtn.addEventListener('click', () => {
+  const row = document.createElement('div');
+  row.className = 'contact-row';
+  row.innerHTML = '<input type="text" name="contact_label" placeholder="Signal / Email / Telegram">' +
+    '<input type="text" name="contact_url" placeholder="Link, @handle, or address">' +
+    '<button type="button" class="btn btn-small btn-outline" onclick="this.parentElement.remove()">✕</button>';
+  document.getElementById('contact-rows').appendChild(row);
+});
+</script>
+{% if step == 2 %}
+<script src="/static/vendor/cropper.min.js"></script>
+<script>
+let cropper = null;
+const fileInput = document.getElementById('photofile');
+fileInput.addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const img = document.getElementById('cropimg');
+  img.src = URL.createObjectURL(f);
+  document.getElementById('cropwrap').style.display = 'block';
+  if (cropper) cropper.destroy();
+  cropper = new Cropper(img, {aspectRatio: 1, viewMode: 1, autoCropArea: 0.9});
+});
+document.getElementById('photoform').addEventListener('submit', () => {
+  if (cropper) {
+    const d = cropper.getData(true);
+    document.getElementById('cropfield').value = JSON.stringify({x: d.x, y: d.y, w: d.width, h: d.height});
+  }
+});
+</script>
+{% endif %}
+{% endblock %}
