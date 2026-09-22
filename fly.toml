@@ -1,0 +1,34 @@
+# Staging config — real secrets go in `fly secrets set`, never here.
+app = "exponential-staging"
+primary_region = "iad"
+
+[build]
+
+[env]
+  ENVIRONMENT = "staging"
+  AUTH_PROVIDER = "dev"            # dev OTP: codes shown on-screen until Clerk keys exist
+  EMAIL_PROVIDER = "console"       # emails land in /admin/email outbox
+  EMAIL_DISABLE_SENDS = "true"
+  SEED_DEMO_DATA = "true"          # fictional members only — staging
+  DATABASE_URL = "sqlite:////data/exponential.db"
+  MEDIA_DIR = "/data/media"
+  STORAGE_BACKEND = "local"
+  SESSION_COOKIE_SECURE = "true"
+  MEMBER_CAP = "80"
+  ADMIN_EMAILS = "jaredsleeper@gmail.com"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[mounts]]
+  source = "expdata"
+  destination = "/data"
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
