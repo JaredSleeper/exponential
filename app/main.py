@@ -77,6 +77,11 @@ async def security_and_csrf(request: Request, call_next):
     return response
 
 
+@app.get("/healthz", include_in_schema=False)
+def healthz():
+    return {"ok": True}
+
+
 @app.get("/robots.txt", include_in_schema=False)
 def robots():
     return PlainTextResponse("User-agent: *\nAllow: /$\nAllow: /apply\nDisallow: /\n")

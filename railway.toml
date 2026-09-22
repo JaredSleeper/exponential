@@ -1,0 +1,12 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+# startCommand intentionally omitted: the Dockerfile CMD wraps uvicorn in
+# `sh -c` so $PORT expands. Setting startCommand here would override CMD
+# and Railway runs it without a shell, which breaks env var expansion.
+healthcheckPath = "/healthz"
+healthcheckTimeout = 60
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
