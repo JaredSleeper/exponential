@@ -96,7 +96,8 @@ def make_member(client: TestClient, admin: TestClient, db, email: str,
              "role": "", "organization": ""})
     post(3, {"working_on": "Writing tests", "bio": "", "come_to_me_for": "",
              "like_to_meet": "", "outside_ai": "", "interests": ["Agents"]})
-    post(4, {"website": "", "linkedin": "", "norms_accepted": "on"})
+    post(4, {"website": "", "linkedin": "https://linkedin.com/in/test-member",
+             "norms_accepted": "on"})
     # tiny valid JPEG
     import io as _io
 

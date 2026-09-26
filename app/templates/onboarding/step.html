@@ -31,7 +31,7 @@
     {% elif step == 2 %}
     <p class="eyebrow">Your headshot</p>
     <h2>A photo other members will recognize.</h2>
-    <p class="muted" style="margin-top:10px">A clear, recent photo of you — it'll show in the member directory. JPEG, PNG, or WebP, under 8 MB. Metadata is stripped on upload.</p>
+    <p class="muted" style="margin-top:10px">A clear, recent photo of you helps members recognize you — it'll show in the member directory. JPEG, PNG, or WebP, under 8 MB; metadata is stripped on upload. <strong>Optional</strong> — if you skip this we'll use a simple monogram, and you can add a photo later.</p>
     {% if p.photo_key %}
     <div style="margin:20px 0"><img src="/media/{{ p.photo_key }}" style="width:140px;border-radius:10px"></div>
     {% endif %}
@@ -89,8 +89,8 @@
       <input type="hidden" name="step" value="4">
       <label class="f">Website</label>
       <input type="url" name="website" value="{{ p.website }}" placeholder="https://">
-      <label class="f">LinkedIn</label>
-      <input type="url" name="linkedin" value="{{ p.linkedin }}" placeholder="https://">
+      <label class="f">LinkedIn <span style="color:var(--accent)">*</span></label>
+      <input type="url" name="linkedin" value="{{ p.linkedin }}" placeholder="https://linkedin.com/in/…" required>
 
       <label class="f">Contact methods shown to members</label>
       <p class="hint">Your sign-in email is private by default. Choose exactly what the "Connect" button reveals.</p>

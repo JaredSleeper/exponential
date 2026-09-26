@@ -5,11 +5,8 @@ addresses. Never run with SEED_DEMO_DATA against production.
 
 Usage: SEED_DEMO_DATA=true python -m app.seed
 """
-import io
 from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
-
-from PIL import Image, ImageDraw, ImageFont
 
 from .config import get_settings
 from .db import Base, SessionLocal, engine
@@ -95,17 +92,8 @@ FICTIONAL = [
 
 
 def _monogram(name: str, i: int) -> bytes:
-    img = Image.new("RGB", (800, 800), PALETTE[i % len(PALETTE)])
-    d = ImageDraw.Draw(img)
-    try:
-        font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf", 340)
-    except OSError:
-        font = ImageFont.load_default()
-    initials = "".join(w[0] for w in name.split()[:2])
-    d.text((400, 390), initials, font=font, fill="#f6f1e8", anchor="mm")
-    buf = io.BytesIO()
-    img.save(buf, "JPEG", quality=88)
-    return buf.getvalue()
+    from .images import monogram_avatar
+    return monogram_avatar(name)[1]
 
 
 def run() -> None:

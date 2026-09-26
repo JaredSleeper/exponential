@@ -60,8 +60,8 @@
       <hr class="soft">
       <label class="f">Website</label>
       <input type="url" name="website" value="{{ p.website }}">
-      <label class="f">LinkedIn</label>
-      <input type="url" name="linkedin" value="{{ p.linkedin }}">
+      <label class="f">LinkedIn <span style="color:var(--accent)">*</span></label>
+      <input type="url" name="linkedin" value="{{ p.linkedin }}" placeholder="https://linkedin.com/in/…" required>
 
       <label class="f">Contact methods shown via the Connect button</label>
       <div id="contact-rows">

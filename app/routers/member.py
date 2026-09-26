@@ -140,6 +140,8 @@ async def save_profile(
     p = db.get(Profile, user.id) or Profile(user_id=user.id)
     if not db.get(Profile, user.id):
         db.add(p)
+    if not str(form.get("linkedin", "")).strip():
+        return redirect("/members/profile", error="LinkedIn is required for every member.")
     for f in ("display_name", "headline", "role", "organization", "working_on", "bio",
               "come_to_me_for", "like_to_meet", "outside_ai", "website", "linkedin"):
         setattr(p, f, str(form.get(f, "")).strip())
