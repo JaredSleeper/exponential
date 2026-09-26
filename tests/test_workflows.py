@@ -300,7 +300,8 @@ def test_directory_visibility_toggle(fresh, db):
     # hide own profile
     m1.post("/members/profile", data={
         "csrf": csrf(m1), "display_name": "Vis Ib", "headline": "x",
-        "working_on": "x", "show_email_off": "1"}, follow_redirects=False)
+        "working_on": "x", "linkedin": "https://linkedin.com/in/vis",
+        "show_email_off": "1"}, follow_redirects=False)
     db.expire_all()
     assert db.get(Profile, p.user_id).directory_visible is False
     # others can't see the card or the page
@@ -321,7 +322,8 @@ def test_members_edit_only_own_profiles(fresh, db):
     # no route exists to edit another profile; POSTing to own can't touch p2
     m1.post("/members/profile", data={
         "csrf": csrf(m1), "display_name": "Hacked", "headline": "x",
-        "working_on": "x", "user_id": p2.user_id})
+        "working_on": "x", "linkedin": "https://linkedin.com/in/hack",
+        "user_id": p2.user_id})
     db.expire_all()
     assert db.get(Profile, p2.user_id).display_name == "Two"
 
@@ -377,3 +379,55 @@ def test_admin_bootstrap_only_via_env(fresh, db):
     # no member-facing route can grant admin — /admin/make-admin requires admin
     admin_client()
     assert db.query(User).filter_by(email="admin@example.com").one().is_admin
+
+
+def _invite_only(client, admin, db, email):
+    admin.post("/admin/invitations",
+               data={"csrf": csrf(admin), "email": email, "note": "", "application_id": ""})
+    msg = db.query(EmailMessage).filter_by(kind="invitation", to_email=email) \
+        .order_by(EmailMessage.created_at.desc()).first()
+    token = re.search(r"/invite/(\S+)", msg.body_text).group(1)
+    sign_in(client, email)
+    client.post(f"/invite/{token}/claim",
+                data={"csrf": client.cookies.get("exp_csrf")})
+
+
+def test_linkedin_required_and_headshot_optional(fresh, db):
+    admin = admin_client()
+    m = TestClient(app, base_url="http://testserver")
+    _invite_only(m, admin, db, "nofoto@example.com")
+    t = m.cookies.get("exp_csrf")
+    post = lambda step, d: m.post("/onboarding/save",
+                                data={"csrf": t, "step": step, **d},
+                                follow_redirects=False)
+    post(1, {"display_name": "No Foto", "headline": "x", "role": "", "organization": ""})
+    post(3, {"working_on": "x", "bio": "", "come_to_me_for": "",
+             "like_to_meet": "", "outside_ai": ""})
+    # LinkedIn omitted → publish refused
+    post(4, {"website": "", "linkedin": "", "norms_accepted": "on"})
+    r = m.post("/onboarding/publish", data={"csrf": t}, follow_redirects=False)
+    assert r.headers["location"].startswith("/onboarding/preview")
+    # preview calls out the missing LinkedIn
+    assert "LinkedIn" in m.get("/onboarding/preview").text
+    # now provide it — still no photo — publish succeeds with a monogram
+    post(4, {"website": "", "linkedin": "https://linkedin.com/in/nofoto",
+             "norms_accepted": "on"})
+    r = m.post("/onboarding/publish", data={"csrf": t}, follow_redirects=False)
+    assert r.headers["location"].startswith("/welcome")
+    p = db.query(Profile).join(User).filter(User.email == "nofoto@example.com").one()
+    assert p.published and p.photo_key and p.photo_key.startswith("headshots/")
+    # the generated monogram is served like any private headshot
+    assert m.get(f"/media/{p.photo_key}").status_code == 200
+
+
+def test_member_edit_requires_linkedin(fresh, db):
+    admin = admin_client()
+    m = TestClient(app, base_url="http://testserver")
+    make_member(m, admin, db, "li@example.com", "Li Ser")
+    r = m.post("/members/profile", data={
+        "csrf": csrf(m), "display_name": "Li Ser", "headline": "x",
+        "working_on": "x", "linkedin": ""}, follow_redirects=False)
+    assert r.headers["location"].startswith("/members/profile")
+    db.expire_all()
+    p = db.query(Profile).join(User).filter(User.email == "li@example.com").one()
+    assert p.linkedin == "https://linkedin.com/in/test-member"

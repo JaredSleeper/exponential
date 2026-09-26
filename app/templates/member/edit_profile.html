@@ -9,7 +9,7 @@
 
     <h3 style="margin-top:36px">Photo</h3>
     <div style="display:flex;gap:20px;align-items:center;margin-top:12px;flex-wrap:wrap">
-      {% if p.photo_key %}<img src="/media/{{ p.photo_key }}" style="width:96px;height:96px;border-radius:10px;object-fit:cover">{% endif %}
+      {% if p.photo_key %}<img src="/media/{{ p.photo_key or "" }}" style="width:96px;height:96px;border-radius:10px;object-fit:cover">{% endif %}
       <form method="post" action="/members/photo" enctype="multipart/form-data" id="photoform">
         <input type="hidden" name="csrf" value="{{ csrf }}">
         <input type="hidden" name="crop" id="cropfield">
@@ -22,17 +22,17 @@
     <form method="post" action="/members/profile" style="margin-top:8px">
       <input type="hidden" name="csrf" value="{{ csrf }}">
       <label class="f">Name *</label>
-      <input type="text" name="display_name" required value="{{ p.display_name }}">
+      <input type="text" name="display_name" required value="{{ p.display_name or "" }}">
       <label class="f">One-line introduction *</label>
-      <input type="text" name="headline" required value="{{ p.headline }}">
+      <input type="text" name="headline" required value="{{ p.headline or "" }}">
       <div class="grid-2">
-        <div><label class="f">Role</label><input type="text" name="role" value="{{ p.role }}"></div>
-        <div><label class="f">Organization</label><input type="text" name="organization" value="{{ p.organization }}"></div>
+        <div><label class="f">Role</label><input type="text" name="role" value="{{ p.role or "" }}"></div>
+        <div><label class="f">Organization</label><input type="text" name="organization" value="{{ p.organization or "" }}"></div>
       </div>
       <label class="f">Working on / exploring *</label>
-      <textarea name="working_on" required>{{ p.working_on }}</textarea>
+      <textarea name="working_on" required>{{ p.working_on or "" }}</textarea>
       <label class="f">Bio</label>
-      <textarea name="bio">{{ p.bio }}</textarea>
+      <textarea name="bio">{{ p.bio or "" }}</textarea>
 
       <label class="f">Interests</label>
       <div style="margin:6px 0">
@@ -46,11 +46,11 @@
       <input type="text" name="expertise" value="{{ p.expertise | join(', ') }}">
 
       <label class="f">Other members can come to me for…</label>
-      <textarea name="come_to_me_for" style="min-height:70px">{{ p.come_to_me_for }}</textarea>
+      <textarea name="come_to_me_for" style="min-height:70px">{{ p.come_to_me_for or "" }}</textarea>
       <label class="f">I'd like to meet people who…</label>
-      <textarea name="like_to_meet" style="min-height:70px">{{ p.like_to_meet }}</textarea>
+      <textarea name="like_to_meet" style="min-height:70px">{{ p.like_to_meet or "" }}</textarea>
       <label class="f">Outside AI, ask me about…</label>
-      <input type="text" name="outside_ai" value="{{ p.outside_ai }}">
+      <input type="text" name="outside_ai" value="{{ p.outside_ai or "" }}">
 
       <label class="f">Happy to</label>
       <label class="check"><input type="checkbox" name="willing_host" {{ 'checked' if p.willing_host }}> Host a gathering</label>
@@ -59,9 +59,9 @@
 
       <hr class="soft">
       <label class="f">Website</label>
-      <input type="url" name="website" value="{{ p.website }}">
-      <label class="f">LinkedIn</label>
-      <input type="url" name="linkedin" value="{{ p.linkedin }}">
+      <input type="url" name="website" value="{{ p.website or "" }}">
+      <label class="f">LinkedIn <span style="color:var(--accent)">*</span></label>
+      <input type="url" name="linkedin" value="{{ p.linkedin or "" }}" placeholder="https://linkedin.com/in/…" required>
 
       <label class="f">Contact methods shown via the Connect button</label>
       <div id="contact-rows">

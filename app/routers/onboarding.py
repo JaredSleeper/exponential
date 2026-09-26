@@ -8,7 +8,7 @@ from ..audit import audit
 from ..config import get_settings
 from ..db import get_db
 from ..emailer import queue_email
-from ..images import ImageRejected, process_headshot
+from ..images import ImageRejected, monogram_avatar, process_headshot
 from ..models import Member, Profile, User
 from ..security import require_member, utcnow, verify_csrf
 from ..services import admissions
@@ -17,7 +17,9 @@ from ..web import interest_tags, redirect, render
 
 router = APIRouter()
 
-REQUIRED = ("display_name", "headline", "working_on")
+REQUIRED = ("display_name", "headline", "working_on", "linkedin")
+REQUIRED_LABELS = {"display_name": "your name", "headline": "a one-line intro",
+                   "working_on": "what you're working on", "linkedin": "your LinkedIn URL"}
 
 STEP_FIELDS = {
     1: ("display_name", "headline", "role", "organization"),
@@ -34,8 +36,8 @@ def _profile(db: Session, user: User) -> Profile:
 
 
 def _progress(p: Profile) -> int:
-    done = sum(bool(getattr(p, f, "")) for f in REQUIRED) + bool(p.photo_key) + bool(p.norms_accepted_at)
-    return round(done / (len(REQUIRED) + 2) * 100)
+    done = sum(bool(getattr(p, f, "")) for f in REQUIRED) + bool(p.norms_accepted_at)
+    return round(done / (len(REQUIRED) + 1) * 100)
 
 
 @router.get("/onboarding")
@@ -120,9 +122,7 @@ async def onboarding_photo(
 def onboarding_preview(request: Request, user: User = Depends(require_member),
                        db: Session = Depends(get_db)):
     p = _profile(db, user)
-    missing = [f for f in REQUIRED if not getattr(p, f, "")]
-    if not p.photo_key:
-        missing.append("a headshot")
+    missing = [REQUIRED_LABELS.get(f, f) for f in REQUIRED if not getattr(p, f, "")]
     if not p.norms_accepted_at:
         missing.append("accepting the community norms")
     return render(request, "onboarding/preview.html", db=db, user=user, p=p,
@@ -138,10 +138,13 @@ async def onboarding_publish(
 ):
     p = _profile(db, user)
     missing = [f for f in REQUIRED if not getattr(p, f, "")] \
-        + ([] if p.photo_key else ["photo"]) \
         + ([] if p.norms_accepted_at else ["norms"])
     if missing:
         return redirect("/onboarding/preview", error="A few required pieces are still missing.")
+    if not p.photo_key:
+        key, blob = monogram_avatar(p.display_name or user.email)
+        put(key, blob, "image/jpeg")
+        p.photo_key = key
     p.published = True
     member = db.get(Member, user.id)
     first_publish = member and member.status != "active"
