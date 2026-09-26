@@ -12,18 +12,18 @@
     <div class="card" style="margin-top:28px">
       <div style="display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap">
         {% if p.photo_key %}
-        <img src="/media/{{ p.photo_key }}" style="width:120px;height:120px;object-fit:cover;border-radius:10px">
+        <img src="/media/{{ p.photo_key or "" }}" style="width:120px;height:120px;object-fit:cover;border-radius:10px">
         {% else %}
         <div class="avatar" style="width:120px;height:120px;border-radius:10px;font-size:40px">{{ (p.display_name or '?')[0] }}</div>
         {% endif %}
         <div style="flex:1;min-width:240px">
           <h3>{{ p.display_name or 'Your name' }}</h3>
           <div class="small muted">{{ [p.role, p.organization] | select | join(' · ') }}</div>
-          <p style="margin-top:8px">{{ p.headline }}</p>
+          <p style="margin-top:8px">{{ p.headline or "" }}</p>
           {% if p.interests %}<div style="margin-top:10px">{% for t in p.interests %}<span class="tag tag-static">{{ t }}</span>{% endfor %}</div>{% endif %}
         </div>
       </div>
-      {% if p.working_on %}<div class="kv"><div class="k">Working on</div><div class="v">{{ p.working_on }}</div></div>{% endif %}
+      {% if p.working_on %}<div class="kv"><div class="k">Working on</div><div class="v">{{ p.working_on or "" }}</div></div>{% endif %}
     </div>
 
     {% if missing %}

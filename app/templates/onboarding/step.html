@@ -16,15 +16,15 @@
       <input type="hidden" name="csrf" value="{{ csrf }}">
       <input type="hidden" name="step" value="1">
       <label class="f">Your name *</label>
-      <input type="text" name="display_name" required maxlength="120" value="{{ p.display_name }}">
+      <input type="text" name="display_name" required maxlength="120" value="{{ p.display_name or "" }}">
       <label class="f">One-line introduction *</label>
-      <input type="text" name="headline" required maxlength="200" value="{{ p.headline }}"
+      <input type="text" name="headline" required maxlength="200" value="{{ p.headline or "" }}"
              placeholder="e.g. Building evaluation tools for scientific AI">
       <div class="hint">This appears under your name in the directory.</div>
       <label class="f">Role</label>
-      <input type="text" name="role" maxlength="120" value="{{ p.role }}">
+      <input type="text" name="role" maxlength="120" value="{{ p.role or "" }}">
       <label class="f">Organization</label>
-      <input type="text" name="organization" maxlength="120" value="{{ p.organization }}">
+      <input type="text" name="organization" maxlength="120" value="{{ p.organization or "" }}">
       <div style="margin-top:28px"><button class="btn btn-accent" type="submit">Save &amp; continue</button></div>
     </form>
 
@@ -33,7 +33,7 @@
     <h2>A photo other members will recognize.</h2>
     <p class="muted" style="margin-top:10px">A clear, recent photo of you helps members recognize you — it'll show in the member directory. JPEG, PNG, or WebP, under 8 MB; metadata is stripped on upload. <strong>Optional</strong> — if you skip this we'll use a simple monogram, and you can add a photo later.</p>
     {% if p.photo_key %}
-    <div style="margin:20px 0"><img src="/media/{{ p.photo_key }}" style="width:140px;border-radius:10px"></div>
+    <div style="margin:20px 0"><img src="/media/{{ p.photo_key or "" }}" style="width:140px;border-radius:10px"></div>
     {% endif %}
     <form method="post" action="/onboarding/photo" enctype="multipart/form-data" id="photoform" style="margin-top:16px">
       <input type="hidden" name="csrf" value="{{ csrf }}">
@@ -53,7 +53,7 @@
       <input type="hidden" name="csrf" value="{{ csrf }}">
       <input type="hidden" name="step" value="3">
       <label class="f">What are you working on or exploring? *</label>
-      <textarea name="working_on" required>{{ p.working_on }}</textarea>
+      <textarea name="working_on" required>{{ p.working_on or "" }}</textarea>
       <label class="f">Interests</label>
       <div style="margin:6px 0">
         {% for t in suggested_tags %}
@@ -67,13 +67,13 @@
       <label class="f">Areas of expertise (comma-separated)</label>
       <input type="text" name="expertise" value="{{ p.expertise | join(', ') }}" placeholder="e.g. GPU infrastructure, policy">
       <label class="f">Short bio</label>
-      <textarea name="bio">{{ p.bio }}</textarea>
+      <textarea name="bio">{{ p.bio or "" }}</textarea>
       <label class="f">Other members can come to me for…</label>
-      <textarea name="come_to_me_for" style="min-height:70px">{{ p.come_to_me_for }}</textarea>
+      <textarea name="come_to_me_for" style="min-height:70px">{{ p.come_to_me_for or "" }}</textarea>
       <label class="f">I'd like to meet people who…</label>
-      <textarea name="like_to_meet" style="min-height:70px">{{ p.like_to_meet }}</textarea>
+      <textarea name="like_to_meet" style="min-height:70px">{{ p.like_to_meet or "" }}</textarea>
       <label class="f">Outside AI, ask me about…</label>
-      <input type="text" name="outside_ai" value="{{ p.outside_ai }}">
+      <input type="text" name="outside_ai" value="{{ p.outside_ai or "" }}">
       <label class="f">Happy to</label>
       <label class="check"><input type="checkbox" name="willing_host" {{ 'checked' if p.willing_host }}> Host a gathering</label>
       <label class="check"><input type="checkbox" name="willing_present" {{ 'checked' if p.willing_present }}> Present at a salon</label>
@@ -88,9 +88,9 @@
       <input type="hidden" name="csrf" value="{{ csrf }}">
       <input type="hidden" name="step" value="4">
       <label class="f">Website</label>
-      <input type="url" name="website" value="{{ p.website }}" placeholder="https://">
+      <input type="url" name="website" value="{{ p.website or "" }}" placeholder="https://">
       <label class="f">LinkedIn <span style="color:var(--accent)">*</span></label>
-      <input type="url" name="linkedin" value="{{ p.linkedin }}" placeholder="https://linkedin.com/in/…" required>
+      <input type="url" name="linkedin" value="{{ p.linkedin or "" }}" placeholder="https://linkedin.com/in/…" required>
 
       <label class="f">Contact methods shown to members</label>
       <p class="hint">Your sign-in email is private by default. Choose exactly what the "Connect" button reveals.</p>
