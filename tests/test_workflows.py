@@ -40,12 +40,13 @@ def test_application_submit_and_admin_review(fresh, db):
     t = csrf(c)
     r = c.post("/apply", data={
         "csrf": t, "name": "Ada Wong", "email": "ada@example.com",
-        "role_company": "Researcher", "link": "https://ada.example.com",
+        "role_company": "Researcher", "linkedin": "https://linkedin.com/in/ada-wong",
         "working_on": "agent evals", "why_join": "good rooms", "referrer": "Mara",
     }, follow_redirects=False)
     assert r.status_code == 303
     a = db.query(Application).filter_by(email="ada@example.com").one()
     assert a.status == "new"
+    assert a.linkedin == "https://linkedin.com/in/ada-wong"
     # ack email queued
     assert db.query(EmailMessage).filter_by(kind="application_ack",
                                            to_email="ada@example.com").one()
@@ -68,6 +69,21 @@ def test_apply_requires_fields(fresh):
     r = c.post("/apply", data={"csrf": csrf(c), "name": "", "email": "bad",
                                "working_on": "", "why_join": ""})
     assert r.status_code == 422
+
+
+def test_apply_requires_linkedin(fresh, db):
+    c = TestClient(app, base_url="http://testserver")
+    base = {"name": "Ada Wong", "email": "ada@example.com", "working_on": "x", "why_join": "y"}
+    r = c.post("/apply", data={"csrf": csrf(c), **base, "linkedin": ""})
+    assert r.status_code == 422 and "LinkedIn" in r.text
+    r = c.post("/apply", data={"csrf": csrf(c), **base, "linkedin": "https://ada.example.com"})
+    assert r.status_code == 422 and "full LinkedIn URL" in r.text
+    assert 'value="https://ada.example.com"' in r.text
+    assert db.query(Application).count() == 0
+    r = c.post("/apply", data={"csrf": csrf(c), **base,
+                               "linkedin": "https://www.linkedin.com/in/ada-wong/"},
+               follow_redirects=False)
+    assert r.status_code == 303
 
 
 # ---------- direct invitation + onboarding ----------

@@ -1,6 +1,9 @@
 """Shared template rendering with common context."""
+import hashlib
 import json
 from datetime import datetime
+from functools import cache
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from fastapi import Request
@@ -14,7 +17,18 @@ from .models import Member, User
 from .security import _load_user
 from .services.admissions import get_setting
 
-templates = Jinja2Templates(directory=str(__file__.rsplit("/", 1)[0] + "/templates"))
+APP_DIR = Path(__file__).resolve().parent
+templates = Jinja2Templates(directory=str(APP_DIR / "templates"))
+
+
+@cache
+def static_url(path: str) -> str:
+    """URL for a file under app/static with a content hash so browsers and
+    CDNs never serve a stale copy after the file changes."""
+    file = APP_DIR / "static" / path
+    digest = hashlib.sha256(file.read_bytes()).hexdigest()[:10]
+    return f"/static/{path}?v={digest}"
+
 
 NY = ZoneInfo("America/New_York")
 
@@ -46,6 +60,7 @@ DEFAULT_INTEREST_TAGS = [
 
 
 templates.env.filters["ny_time"] = ny_time
+templates.env.globals["static_url"] = static_url
 
 
 def render(

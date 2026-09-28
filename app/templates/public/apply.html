@@ -26,8 +26,8 @@
       <label class="f">Role / company, if applicable</label>
       <input type="text" name="role_company" value="{{ form.role_company if form else '' }}">
 
-      <label class="f">LinkedIn or personal website</label>
-      <input type="url" name="link" placeholder="https://" value="{{ form.link if form else '' }}">
+      <label class="f">LinkedIn *</label>
+      <input type="url" name="linkedin" required placeholder="https://linkedin.com/in/…" value="{{ form.linkedin if form else '' }}">
 
       <label class="f">What are you working on or exploring? *</label>
       <textarea name="working_on" required>{{ form.working_on if form else '' }}</textarea>
