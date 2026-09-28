@@ -145,7 +145,7 @@ def run() -> None:
         if not db.query(Application).filter_by(email="sam.kato@example.com").first():
             db.add(Application(
                 name="Sam Kato", email="sam.kato@example.com",
-                role_company="Designer, independent", link="https://samkato.example.com",
+                role_company="Designer, independent", linkedin="https://linkedin.com/in/sam-kato-example",
                 working_on="Tools for attention, and what notification design owes people.",
                 why_join="Looking for a room where AI is taken seriously and discussed warmly.",
                 referrer="Mara Chen"))

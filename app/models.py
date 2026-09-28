@@ -128,7 +128,7 @@ class Application(Base):
     name: Mapped[str] = mapped_column(String(120))
     email: Mapped[str] = mapped_column(String(320), index=True)
     role_company: Mapped[str] = mapped_column(String(200), default="")
-    link: Mapped[str] = mapped_column(String(300), default="")
+    linkedin: Mapped[str] = mapped_column(String(300), default="")
     working_on: Mapped[str] = mapped_column(Text, default="")
     why_join: Mapped[str] = mapped_column(Text, default="")
     referrer: Mapped[str] = mapped_column(String(160), default="", index=True)

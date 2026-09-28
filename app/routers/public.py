@@ -15,6 +15,7 @@ from ..web import redirect, render
 router = APIRouter()
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+LINKEDIN_RE = re.compile(r"^https?://([a-z0-9-]+\.)?linkedin\.com/.+", re.IGNORECASE)
 
 
 @router.get("/")
@@ -35,30 +36,34 @@ async def apply_submit(
     name: str = Form(""),
     email: str = Form(""),
     role_company: str = Form(""),
-    link: str = Form(""),
+    linkedin: str = Form(""),
     working_on: str = Form(""),
     why_join: str = Form(""),
     referrer: str = Form(""),
 ):
     rate_limit(request, "apply", 5, 600)
-    name, email = name.strip(), normalize_email(email)
+    name, email, linkedin = name.strip(), normalize_email(email), linkedin.strip()
     errors = []
     if not name:
         errors.append("Please tell us your name.")
     if not EMAIL_RE.match(email):
         errors.append("Please use a valid email address.")
+    if not linkedin:
+        errors.append("Please include your LinkedIn profile.")
+    elif not LINKEDIN_RE.match(linkedin):
+        errors.append("Please use a full LinkedIn URL, like https://linkedin.com/in/your-name.")
     if not working_on.strip():
         errors.append("Tell us a little about what you're working on or exploring.")
     if not why_join.strip():
         errors.append("Tell us why you'd like to join.")
     if errors:
         return render(request, "public/apply.html", status=422, errors=errors, form={
-            "name": name, "email": email, "role_company": role_company, "link": link,
+            "name": name, "email": email, "role_company": role_company, "linkedin": linkedin,
             "working_on": working_on, "why_join": why_join, "referrer": referrer,
         })
 
     app_row = Application(
-        name=name, email=email, role_company=role_company.strip(), link=link.strip(),
+        name=name, email=email, role_company=role_company.strip(), linkedin=linkedin,
         working_on=working_on.strip(), why_join=why_join.strip(), referrer=referrer.strip(),
     )
     db.add(app_row)

@@ -9,7 +9,7 @@
         <p class="eyebrow" style="margin-bottom:6px">Application · <span class="badge">{{ a.status }}</span></p>
         <h2>{{ a.name }}</h2>
         <p class="muted">{{ a.email }}{% if a.role_company %} · {{ a.role_company }}{% endif %}</p>
-        {% if a.link %}<p style="margin-top:6px"><a href="{{ a.link }}" target="_blank" rel="noopener">{{ a.link }}</a></p>{% endif %}
+        {% if a.linkedin %}<p style="margin-top:6px"><a href="{{ a.linkedin }}" target="_blank" rel="noopener">{{ a.linkedin }}</a></p>{% endif %}
         {% if a.referrer %}<p class="small muted" style="margin-top:6px">Referred by {{ a.referrer }}</p>{% endif %}
         <div class="kv"><div class="k">Working on / exploring</div><div class="v">{{ a.working_on }}</div></div>
         <div class="kv"><div class="k">Why they want to join</div><div class="v">{{ a.why_join }}</div></div>

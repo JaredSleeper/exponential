@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Your profile — Exponential{% endblock %}
-{% block head %}<link rel="stylesheet" href="/static/vendor/cropper.min.css">{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ static_url('vendor/cropper.min.css') }}">{% endblock %}
 {% block body %}
 <section class="section">
   <div class="wrap-narrow">
@@ -94,7 +94,7 @@
   </div>
 </section>
 
-<script src="/static/vendor/cropper.min.js"></script>
+<script src="{{ static_url('vendor/cropper.min.js') }}"></script>
 <script>
 document.querySelectorAll('.tag input[type=checkbox]').forEach(cb => {
   cb.addEventListener('change', () => cb.parentElement.classList.toggle('on', cb.checked));

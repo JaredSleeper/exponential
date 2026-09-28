@@ -596,10 +596,10 @@ def export_members(user: User = Admin, db: Session = Depends(get_db)):
 @router.get("/admin/export/applications.csv")
 def export_applications(user: User = Admin, db: Session = Depends(get_db)):
 
-    rows = [["name", "email", "role_company", "link", "referrer", "status",
+    rows = [["name", "email", "role_company", "linkedin", "referrer", "status",
              "suggest_gathering", "created_at"]]
     for a in db.scalars(select(Application)):
-        rows.append([a.name, a.email, a.role_company, a.link, a.referrer,
+        rows.append([a.name, a.email, a.role_company, a.linkedin, a.referrer,
                      a.status, a.suggest_gathering, a.created_at])
     audit(db, "export.applications", actor=user)
     db.commit()

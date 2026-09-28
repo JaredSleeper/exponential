@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Onboarding — Exponential{% endblock %}
 {% block head %}
-{% if step == 2 %}<link rel="stylesheet" href="/static/vendor/cropper.min.css">{% endif %}
+{% if step == 2 %}<link rel="stylesheet" href="{{ static_url('vendor/cropper.min.css') }}">{% endif %}
 {% endblock %}
 {% block body %}
 <section class="section">
@@ -138,7 +138,7 @@ if (addBtn) addBtn.addEventListener('click', () => {
 });
 </script>
 {% if step == 2 %}
-<script src="/static/vendor/cropper.min.js"></script>
+<script src="{{ static_url('vendor/cropper.min.js') }}"></script>
 <script>
 let cropper = null;
 const fileInput = document.getElementById('photofile');
