@@ -106,6 +106,8 @@ def run() -> None:
     db = SessionLocal()
     try:
         for i, (name, email, role, org, work, bio, ints, exp, come, meet, outside) in enumerate(FICTIONAL):
+            key = f"headshots/seed-{i}.jpg"
+            put(key, _monogram(name, i), "image/jpeg")
             user = db.query(User).filter_by(email=email).first()
             if user:
                 continue
@@ -113,8 +115,6 @@ def run() -> None:
             db.add(user)
             db.flush()
             db.add(Member(user_id=user.id, status="active", approved_at=utcnow()))
-            key = f"headshots/seed-{i}.jpg"
-            put(key, _monogram(name, i), "image/jpeg")
             db.add(Profile(
                 user_id=user.id, display_name=name, headline=work.split(".")[0] + ".",
                 role=role, organization=org, working_on=work, bio=bio,
