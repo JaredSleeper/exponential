@@ -9,8 +9,9 @@
       Exponential runs on small rooms and generous people. Here's how to start:
     </p>
 
-    <div style="margin-top:36px;display:grid;gap:22px">
-      <div class="card">
+    <div style="margin-top:48px">
+      <div class="card flat" style="padding:26px 0 30px">
+        <span class="num" style="display:block;margin-bottom:12px">01</span>
         <h3>Come to a gathering</h3>
         {% if events %}
         <p class="muted" style="margin-top:8px">Next up: <strong>{{ events[0].title }}</strong> — {{ events[0].starts_at | ny_time }}{% if events[0].host %}, hosted by {{ events[0].host }}{% endif %}.</p>
@@ -20,13 +21,15 @@
         {% endif %}
       </div>
 
-      <div class="card">
+      <div class="card flat" style="padding:26px 0 30px;border-top-color:var(--line)">
+        <span class="num" style="display:block;margin-bottom:12px">02</span>
         <h3>Meet the members</h3>
         <p class="muted" style="margin-top:8px">Browse the directory — find someone working on a question you share, or someone you met at dinner whose name slipped away.</p>
         <div style="margin-top:12px"><a class="btn btn-small btn-outline" href="/directory">Explore the directory</a></div>
       </div>
 
-      <div class="card">
+      <div class="card flat" style="padding:26px 0 30px;border-top-color:var(--line)">
+        <span class="num" style="display:block;margin-bottom:12px">03</span>
         <h3>Join the conversation on Signal</h3>
         <p class="muted" style="margin-top:8px">
           Between gatherings we talk on Signal. Joining is your choice — and note
@@ -40,7 +43,8 @@
         {% endif %}
       </div>
 
-      <div class="card">
+      <div class="card flat" style="padding:26px 0 30px;border-top-color:var(--line)">
+        <span class="num" style="display:block;margin-bottom:12px">04</span>
         <h3>How to participate</h3>
         <p class="muted" style="margin-top:8px">
           RSVP honestly and come curious. Offer what you know — everyone here was

@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 {% block body %}
-<section style="padding:96px 0 88px;border-bottom:1px solid var(--line)">
+<section class="hero">
   <div class="wrap">
-    <img src="/static/assets/logo.png" alt="Exponential NYC" style="height:clamp(60px,9vw,120px);width:auto">
-    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;align-items:end;margin-top:72px" class="hero-grid">
-      <p class="serif" style="font-size:clamp(20px,2.4vw,28px);line-height:1.3;color:var(--ink-soft);margin:0">Participating in accelerating technological change, together.</p>
+    <img class="hero-mark" src="/static/assets/logo.png" alt="Exponential NYC">
+    <h1 class="display hero-line">Participating in accelerating<br class="desk">technological change, <em>together.</em></h1>
+    <div class="hero-foot">
+      <p class="eyebrow" style="margin:0">A New York community for the AI era</p>
       <div>
-        <p class="eyebrow">A New York community for the AI era</p>
         <p class="lede">
           Exponential is a selective community for people who are building, researching,
           and thoughtfully applying AI. We gather in small rooms — salons, breakfasts,
           dinners — to think out loud, compare notes, and form real relationships
           around the most consequential technology of our time.
         </p>
-        <div class="btn-row" style="margin-top:36px">
-          <a class="btn btn-accent" href="/apply">Express interest</a>
+        <div class="btn-row" style="margin-top:40px">
+          <a class="btn" href="/apply">Express interest</a>
           <a class="btn btn-outline" href="/auth/sign-in">Member sign-in</a>
         </div>
       </div>
@@ -22,51 +22,103 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" style="border-top:1px solid var(--line)">
   <div class="wrap">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:12px">
-      <h2 style="margin:0">Small rooms, long conversations.</h2>
+    <div class="section-head">
       <p class="eyebrow" style="margin:0">How we gather</p>
+      <h2 style="margin:0">Small rooms, long conversations.</h2>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:56px;border-top:1px solid var(--ink)" class="triptych">
-      <div style="padding:32px 32px 40px 0;border-right:1px solid var(--line)">
+    <div class="triptych">
+      <div>
+        <span class="num">01</span>
         <h3>Salons</h3>
-        <p class="muted" style="margin-top:10px;font-size:15px">Evening conversations around a single question or a member's work-in-progress — hosted, discursive, unrecorded.</p>
+        <p>Evening conversations around a single question or a member's work-in-progress — hosted, discursive, unrecorded.</p>
       </div>
-      <div style="padding:32px 32px 40px;border-right:1px solid var(--line)">
+      <div>
+        <span class="num">02</span>
         <h3>Breakfasts</h3>
-        <p class="muted" style="margin-top:10px;font-size:15px">Small morning tables for people in adjacent corners of the field — researchers next to founders next to writers.</p>
+        <p>Small morning tables for people in adjacent corners of the field — researchers next to founders next to writers.</p>
       </div>
-      <div style="padding:32px 0 40px 32px">
+      <div>
+        <span class="num">03</span>
         <h3>Dinners</h3>
-        <p class="muted" style="margin-top:10px;font-size:15px">A handful of members around one table. The point is the people, not the programming.</p>
+        <p>A handful of members around one table. The point is the people, not the programming.</p>
       </div>
     </div>
   </div>
 </section>
 
-<section class="section" style="padding-top:0">
-  <div class="wrap-narrow">
-    <p class="eyebrow">What we value</p>
-    <h2>Curiosity, contribution, and each other.</h2>
-    <p class="lede" style="margin-top:24px">
-      Membership is selective and small by design. We look for people who are
-      genuinely engaged with AI — building it, studying it, or applying it with
-      care — and who show up ready to give as much as they take. Gatherings are
-      the center of gravity; the relationships are the point.
-    </p>
-    <div class="btn-row" style="margin-top:36px">
-      <a class="btn" href="/apply">Express interest</a>
+<section class="section values">
+  <div class="wrap">
+    <div class="values-grid">
+      <p class="eyebrow">What we value</p>
+      <div>
+        <h2>Curiosity, contribution,<br>and each other.</h2>
+        <p class="lede" style="margin-top:28px">
+          Membership is selective and small by design. We look for people who are
+          genuinely engaged with AI — building it, studying it, or applying it with
+          care — and who show up ready to give as much as they take. Gatherings are
+          the center of gravity; the relationships are the point.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band closer">
+  <div class="wrap">
+    <img src="/static/assets/logo-dark.png" alt="" aria-hidden="true" class="closer-mark">
+    <div class="closer-grid">
+      <h2 style="margin:0">Small by design.<br>Open to the curious.</h2>
+      <div>
+        <p class="muted" style="font-size:17px;line-height:1.65;max-width:44ch">
+          Tell us what you're building or exploring. We read every note, and we
+          often begin by inviting people to a gathering before anything else.
+        </p>
+        <div class="btn-row" style="margin-top:32px">
+          <a class="btn btn-paper" href="/apply">Express interest</a>
+          <a class="btn btn-paper-outline" href="/auth/sign-in">Member sign-in</a>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
 <style>
+.hero { padding: 104px 0 112px; }
+.hero-mark { height: clamp(44px, 6.2vw, 84px); width: auto; }
+.hero-line { margin-top: 88px; max-width: 18ch; }
+.hero-line em { font-style: italic; font-variation-settings: "SOFT" 100, "WONK" 1; color: var(--ink-soft); }
+.hero-foot {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 48px;
+  margin-top: 80px; padding-top: 36px; border-top: 1px solid var(--line); align-items: start;
+}
+.triptych {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 56px; margin-top: 64px;
+}
+.triptych > div { border-top: 1px solid var(--ink); padding: 26px 0 8px; }
+.triptych .num { display: block; margin-bottom: 40px; }
+.triptych h3 { font-size: 26px; }
+.triptych p { margin-top: 14px; color: var(--ink-soft); font-size: 15.5px; line-height: 1.65; }
+.values { padding: 40px 0 120px; }
+.values-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 48px; align-items: start; }
+.closer { padding: 112px 0 120px; margin-bottom: -120px; }
+.closer-mark { height: 22px; width: auto; opacity: .55; }
+.closer-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 48px; align-items: start; margin-top: 72px; }
+.footer { margin-top: 120px; }
+
 @media (max-width: 720px) {
-  .hero-grid { grid-template-columns: 1fr !important; gap: 28px !important; margin-top: 44px !important; }
-  .triptych { grid-template-columns: 1fr !important; }
-  .triptych > div { border-right: 0 !important; border-bottom: 1px solid var(--line); padding: 28px 0 !important; }
-  .triptych > div:last-child { border-bottom: 0; }
+  .hero { padding: 56px 0 64px; }
+  .hero-line { margin-top: 48px; }
+  .hero-line .desk { display: none; }
+  .hero-foot { grid-template-columns: 1fr; gap: 20px; margin-top: 48px; padding-top: 28px; }
+  .triptych { grid-template-columns: 1fr; margin-top: 40px; }
+  .triptych > div { padding: 22px 0 28px; }
+  .triptych .num { margin-bottom: 18px; }
+  .values { padding: 16px 0 72px; }
+  .values-grid, .closer-grid { grid-template-columns: 1fr; gap: 20px; }
+  .closer { padding: 72px 0 80px; margin-bottom: -72px; }
+  .closer-grid { margin-top: 44px; gap: 32px; }
 }
 </style>
 {% endblock %}

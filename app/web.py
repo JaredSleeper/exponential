@@ -19,12 +19,13 @@ templates = Jinja2Templates(directory=str(__file__.rsplit("/", 1)[0] + "/templat
 NY = ZoneInfo("America/New_York")
 
 
-def ny_time(dt: datetime | None, fmt: str = "%A, %B %-d · %-I:%M %p") -> str:
+def ny_time(dt: datetime | None, fmt: str = "%A, %B %-d · %-I:%M %p", tz: bool = True) -> str:
     if not dt:
         return ""
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=__import__("datetime").timezone.utc)
-    return dt.astimezone(NY).strftime(fmt) + " ET"
+    out = dt.astimezone(NY).strftime(fmt)
+    return out + " ET" if tz else out
 
 
 def interest_tags(db: Session) -> list[str]:

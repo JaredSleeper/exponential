@@ -4,8 +4,8 @@
 <section class="section">
   <div class="wrap-narrow">
     <p class="eyebrow">Express interest</p>
-    <h1 style="font-size:clamp(28px,4vw,40px)">Tell us about yourself.</h1>
-    <p class="lede" style="margin-top:16px">
+    <h1>Tell us about yourself.</h1>
+    <p class="lede" style="margin-top:22px">
       Exponential is small and selective. This starts a conversation — it isn't
       membership, and it doesn't guarantee one. We read every note by hand, and
       we often begin by inviting promising applicants to a gathering.
@@ -15,7 +15,7 @@
     <div class="flash error">{% for e in errors %}{{ e }}<br>{% endfor %}</div>
     {% endif %}
 
-    <form method="post" action="/apply" class="card" style="margin-top:32px">
+    <form method="post" action="/apply" style="margin-top:48px;padding-top:12px;border-top:1px solid var(--ink)">
       <input type="hidden" name="csrf" value="{{ csrf }}">
       <label class="f">Name *</label>
       <input type="text" name="name" required value="{{ form.name if form else '' }}">
@@ -38,7 +38,7 @@
       <label class="f">Referrer, if any</label>
       <input type="text" name="referrer" value="{{ form.referrer if form else '' }}">
 
-      <div style="margin-top:28px"><button class="btn btn-accent" type="submit">Submit</button></div>
+      <div class="btn-row" style="margin-top:40px"><button class="btn" type="submit">Submit</button><span class="small faint">We read every note by hand.</span></div>
     </form>
   </div>
 </section>

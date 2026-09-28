@@ -7,34 +7,35 @@
 <meta name="description" content="Exponential — a New York community for people building, researching, and thoughtfully applying AI.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..600,0..100,0..1;1,9..144,300..600,0..100,0..1&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/css/main.css">
 <link rel="icon" href="/static/assets/favicon.png" type="image/png">
 {% block head %}{% endblock %}
 </head>
 <body>
 {% if s.environment != "production" and s.auth_provider == "dev" %}
-<div class="devbanner">Development mode — emails print to the server log; sign-in codes appear on screen.</div>
+<div class="devbanner">Development mode · emails print to the server log · sign-in codes appear on screen</div>
 {% endif %}
 <div class="wrap">
   <nav class="nav">
     <a class="brand" href="/"><img src="/static/assets/logo.png" alt="Exponential NYC"></a>
-    <div class="nav-links">
+    <div class="nav-links{{ ' many' if user }}">
+      {% set path = request.url.path %}
       {% if is_active_member %}
-      <a href="/members">Home</a>
-      <a href="/directory">Directory</a>
-      <a href="/events">Gatherings</a>
-      <a href="/members/profile">Profile</a>
+      <a href="/members" class="{{ 'here' if path == '/members' }}">Home</a>
+      <a href="/directory" class="{{ 'here' if path.startswith('/directory') }}">Directory</a>
+      <a href="/events" class="{{ 'here' if path.startswith('/events') }}">Gatherings</a>
+      <a href="/members/profile" class="{{ 'here' if path.startswith('/members/profile') }}">Profile</a>
       {% endif %}
-      {% if is_admin %}<a href="/admin">Admin</a>{% endif %}
+      {% if is_admin %}<a href="/admin" class="{{ 'here' if path.startswith('/admin') }}">Admin</a>{% endif %}
       {% if user %}
-      <form method="post" action="/auth/sign-out" style="display:inline">
+      <form method="post" action="/auth/sign-out">
         <input type="hidden" name="csrf" value="{{ csrf }}">
-        <button style="background:none;border:none;color:var(--ink-soft);font-size:14px;cursor:pointer;padding:0">Sign out</button>
+        <button type="submit">Sign out</button>
       </form>
       {% else %}
-      <a href="/apply">Express interest</a>
-      <a href="/auth/sign-in">Member sign-in</a>
+      <a href="/apply" class="{{ 'here' if path == '/apply' }}">Express interest</a>
+      <a href="/auth/sign-in" class="{{ 'here' if path.startswith('/auth') }}">Sign in</a>
       {% endif %}
     </div>
   </nav>
@@ -47,9 +48,13 @@
 </main>
 
 <footer class="footer">
-  <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
+  <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px 32px">
     <img src="/static/assets/logo.png" alt="Exponential NYC">
-    <span>New York City · <a href="/apply">Express interest</a></span>
+    <span style="display:flex;gap:28px;flex-wrap:wrap">
+      <span>New York City</span>
+      <a href="/apply">Express interest</a>
+      <a href="/auth/sign-in">Sign in</a>
+    </span>
   </div>
 </footer>
 </body>
