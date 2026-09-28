@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/css/main.css">
-<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/static/assets/favicon.png" type="image/png">
 {% block head %}{% endblock %}
 </head>
 <body>
@@ -18,7 +18,7 @@
 {% endif %}
 <div class="wrap">
   <nav class="nav">
-    <a class="brand" href="/">Exponential</a>
+    <a class="brand" href="/"><img src="/static/assets/logo.png" alt="Exponential NYC"></a>
     <div class="nav-links">
       {% if is_active_member %}
       <a href="/members">Home</a>
@@ -47,8 +47,8 @@
 </main>
 
 <footer class="footer">
-  <div class="wrap" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px">
-    <span class="serif" style="font-size:16px">Exponential Collective</span>
+  <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
+    <img src="/static/assets/logo.png" alt="Exponential NYC">
     <span>New York City · <a href="/apply">Express interest</a></span>
   </div>
 </footer>
