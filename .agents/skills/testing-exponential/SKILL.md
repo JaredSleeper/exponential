@@ -26,6 +26,14 @@ description: How to run and test the Exponential member portal locally (env vars
 ## Testing required-field gates behind HTML `required`
 - Forms enforce `required` client-side too, so the browser blocks empty submission. To test SERVER-side rejection, submit with `document.querySelector('form[action="..."]').submit()` in the console — form.submit() skips constraint validation.
 
+## Visual / responsive checks (design PRs)
+- Chrome on Linux refuses window widths below ~530px (`xdotool windowsize 390 ...` snaps to 532), so for a ~390px mobile viewport open DevTools (F12) THEN press Ctrl+Shift+M for device emulation and type the width in the "Dimensions" box. (Ctrl+Shift+M without DevTools open pops the Chromium profile menu.) Toggle back with Ctrl+Shift+M + F12 before desktop checks.
+- Assert overflow with `document.documentElement.scrollWidth === innerWidth`; if content overflows, emulation may report a widened `innerWidth` (e.g. 438 for a 390 device) — that itself is the failure signal. Find the culprit with `[...document.querySelectorAll('body *')].filter(e => e.getBoundingClientRect().right > innerWidth + 1)`.
+- Transparent-logo checks: PNGs with alpha can still render white halos; sample pixels of a root screenshot (`import -window root x.png`, PIL) inside the `<img>` bounding box and compare against `getComputedStyle(body).backgroundColor` (paper is rgb(251,250,248)).
+- Watch for `<br class="desk">`-style responsive line breaks hidden at ≤720px: if the `<br>` is the only whitespace between words, hiding it fuses them ("acceleratingtechnological") and can overflow small viewports. Prefer a space plus `<br>` or `<span class="desk-break">`.
+- The omnibox autocompletes `localhost:8899/` to previously visited deeper paths; press Delete after typing the URL (before Enter) to drop the suggestion.
+- Seeded members (e.g. mara.chen) have no LinkedIn; since LinkedIn is required on /members/profile, add one before expecting "Profile saved.".
+
 ## Misc
 - Onboarding profile fields render `value="None"` when DB columns are NULL (Jinja None leak) — clear inputs before typing.
 - Media: `media/headshots/*.jpg` served via authenticated `/media/` route; monogram fallback color = MONOGRAM_PALETTE[sha256(name) % 6] in `app/images.py`.
