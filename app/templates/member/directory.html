@@ -3,29 +3,34 @@
 {% block body %}
 <section class="section">
   <div class="wrap">
-    <p class="eyebrow">Member directory</p>
-    <h1 style="font-size:clamp(28px,4vw,40px)">{{ total }} member{{ 's' if total != 1 }}</h1>
-
-    <form method="get" action="/directory" class="card" style="margin-top:26px;display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:12px;align-items:end">
+    <div class="section-head">
       <div>
-        <label class="f" style="margin-top:0">Search</label>
-        <input type="text" name="q" value="{{ q }}" placeholder="Name, org, interest, what they work on…">
+        <p class="eyebrow">Member directory</p>
+        <h1>{{ total }} member{{ 's' if total != 1 }}</h1>
+      </div>
+      <p class="muted" style="max-width:36ch;font-size:15px">The people in the room. Remember someone from dinner, or find someone who shares an interest.</p>
+    </div>
+
+    <form method="get" action="/directory" class="dir-toolbar">
+      <div>
+        <label class="f">Search</label>
+        <input type="text" name="q" value="{{ q }}" placeholder="Name, organization, interest, what they work on…">
       </div>
       <div>
-        <label class="f" style="margin-top:0">Interest</label>
+        <label class="f">Interest</label>
         <select name="interest">
           <option value="">Any</option>
           {% for t in suggested_tags %}<option value="{{ t }}" {{ 'selected' if t == interest }}>{{ t }}</option>{% endfor %}
         </select>
       </div>
       <div>
-        <label class="f" style="margin-top:0">Expertise</label>
+        <label class="f">Expertise</label>
         <input type="text" name="expertise" value="{{ expertise }}" placeholder="e.g. policy">
       </div>
-      <button class="btn" type="submit">Filter</button>
+      <button class="btn btn-small btn-outline" type="submit" style="margin-bottom:6px">Filter</button>
     </form>
     {% if q or interest or expertise %}
-    <p class="small muted" style="margin-top:12px">
+    <p class="small faint" style="margin-top:16px">
       {{ profiles | length }} result{{ 's' if profiles | length != 1 }} ·
       <a href="/directory">Reset filters</a>
     </p>
@@ -45,15 +50,15 @@
           {% if p.role or p.organization %}<div class="role">{{ [p.role, p.organization] | select | join(' · ') }}</div>{% endif %}
           <div class="head">{{ p.headline }}</div>
           {% if p.interests %}
-          <div class="ints">{% for t in p.interests[:4] %}<span class="tag tag-static" style="font-size:11px;padding:2px 9px">{{ t }}</span>{% endfor %}</div>
+          <div class="ints">{% for t in p.interests[:3] %}<span class="tag tag-quiet">{{ t }}</span>{% endfor %}</div>
           {% endif %}
         </div>
       </a>
       {% endfor %}
     </div>
     {% else %}
-    <div class="empty card" style="margin-top:32px">
-      <p class="serif" style="font-size:20px">No members match.</p>
+    <div class="empty" style="margin-top:48px">
+      <p class="serif" style="font-size:24px;color:var(--ink)">No members match.</p>
       <p class="muted" style="margin-top:8px">Try a different search, or <a href="/directory">clear the filters</a>.</p>
     </div>
     {% endif %}
