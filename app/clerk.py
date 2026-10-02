@@ -45,7 +45,12 @@ def _jwks_url_from_key(pk: str) -> str:
 
 def verify_session_token(token: str) -> dict:
     signing_key = _jwks_client().get_signing_key_from_jwt(token)
-    return jwt.decode(signing_key.key, token, algorithms=["RS256"], options={"verify_aud": False})
+    claims = jwt.decode(
+        token, signing_key.key, algorithms=["RS256"], options={"verify_aud": False}, leeway=10
+    )
+    if "azp" in claims and claims["azp"] != get_settings().app_base_url.rstrip("/"):
+        raise jwt.InvalidTokenError("unexpected azp")
+    return claims
 
 
 def fetch_verified_email(clerk_user_id: str) -> str:
