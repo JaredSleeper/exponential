@@ -76,14 +76,43 @@ def test_apply_requires_linkedin(fresh, db):
     base = {"name": "Ada Wong", "email": "ada@example.com", "working_on": "x", "why_join": "y"}
     r = c.post("/apply", data={"csrf": csrf(c), **base, "linkedin": ""})
     assert r.status_code == 422 and "LinkedIn" in r.text
-    r = c.post("/apply", data={"csrf": csrf(c), **base, "linkedin": "https://ada.example.com"})
-    assert r.status_code == 422 and "full LinkedIn URL" in r.text
+    r = c.post("/apply", data={"csrf": csrf(c), **base, "linkedin": "ada.example.com"})
+    assert r.status_code == 422 and "Please use your LinkedIn profile URL" in r.text
     assert 'value="https://ada.example.com"' in r.text
     assert db.query(Application).count() == 0
     r = c.post("/apply", data={"csrf": csrf(c), **base,
                                "linkedin": "https://www.linkedin.com/in/ada-wong/"},
                follow_redirects=False)
     assert r.status_code == 303
+
+
+@pytest.mark.parametrize(
+    ("linkedin", "email", "expected"),
+    [
+        ("linkedin.com/in/ada-wong", "ada-bare@example.com", "https://linkedin.com/in/ada-wong"),
+        ("www.linkedin.com/in/ada-wong", "ada-www@example.com", "https://www.linkedin.com/in/ada-wong"),
+    ],
+)
+def test_apply_normalizes_bare_linkedin_urls(fresh, db, linkedin, email, expected):
+    c = TestClient(app, base_url="http://testserver")
+    r = c.post("/apply", data={
+        "csrf": csrf(c), "name": "Ada Wong", "email": email, "linkedin": linkedin,
+        "working_on": "x", "why_join": "y",
+    }, follow_redirects=False)
+
+    assert r.status_code == 303
+    application = db.query(Application).filter_by(email=email).one()
+    assert application.linkedin == expected
+
+
+def test_apply_linkedin_input_accepts_bare_url(fresh):
+    c = TestClient(app, base_url="http://testserver")
+
+    response = c.get("/apply")
+
+    linkedin_input = re.search(r'<input[^>]*name="linkedin"[^>]*>', response.text).group()
+    assert 'type="url"' not in linkedin_input
+    assert 'type="text"' in linkedin_input
 
 
 # ---------- direct invitation + onboarding ----------
@@ -436,6 +465,20 @@ def test_linkedin_required_and_headshot_optional(fresh, db):
     assert m.get(f"/media/{p.photo_key}").status_code == 200
 
 
+def test_onboarding_normalizes_bare_linkedin(fresh, db):
+    admin = admin_client()
+    m = TestClient(app, base_url="http://testserver")
+    _invite_only(m, admin, db, "bare-linkedin@example.com")
+
+    r = m.post("/onboarding/save", data={
+        "csrf": csrf(m), "step": 4, "website": "", "linkedin": "linkedin.com/in/x",
+    }, follow_redirects=False)
+
+    assert r.status_code == 303
+    p = db.query(Profile).join(User).filter(User.email == "bare-linkedin@example.com").one()
+    assert p.linkedin == "https://linkedin.com/in/x"
+
+
 def test_member_edit_requires_linkedin(fresh, db):
     admin = admin_client()
     m = TestClient(app, base_url="http://testserver")
@@ -447,3 +490,19 @@ def test_member_edit_requires_linkedin(fresh, db):
     db.expire_all()
     p = db.query(Profile).join(User).filter(User.email == "li@example.com").one()
     assert p.linkedin == "https://linkedin.com/in/test-member"
+
+
+def test_member_edit_normalizes_bare_linkedin(fresh, db):
+    admin = admin_client()
+    m = TestClient(app, base_url="http://testserver")
+    make_member(m, admin, db, "bare-profile-linkedin@example.com", "Bare Profile")
+
+    r = m.post("/members/profile", data={
+        "csrf": csrf(m), "display_name": "Bare Profile", "headline": "x",
+        "working_on": "x", "linkedin": "linkedin.com/in/x",
+    }, follow_redirects=False)
+
+    assert r.status_code == 303
+    db.expire_all()
+    p = db.query(Profile).join(User).filter(User.email == "bare-profile-linkedin@example.com").one()
+    assert p.linkedin == "https://linkedin.com/in/x"

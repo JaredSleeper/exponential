@@ -10,7 +10,7 @@ from ..db import get_db
 from ..emailer import queue_email
 from ..images import ImageRejected, monogram_avatar, process_headshot
 from ..models import Member, Profile, User
-from ..security import require_member, utcnow, verify_csrf
+from ..security import normalize_url, require_member, utcnow, verify_csrf
 from ..services import admissions
 from ..storage import put
 from ..web import interest_tags, redirect, render
@@ -63,7 +63,10 @@ async def onboarding_save(
         if field == "show_email":
             p.show_email = "show_email" in form
         else:
-            setattr(p, field, str(form.get(field, "")).strip())
+            value = str(form.get(field, "")).strip()
+            if field == "linkedin":
+                value = normalize_url(value)
+            setattr(p, field, value)
     if step == 3:
         p.interests = [t.strip() for t in form.getlist("interests") if t.strip()][:12]
         extra = [t.strip() for t in str(form.get("extra_interests", "")).split(",") if t.strip()]

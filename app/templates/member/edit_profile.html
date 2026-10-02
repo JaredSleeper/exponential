@@ -61,7 +61,7 @@
       <label class="f">Website</label>
       <input type="url" name="website" value="{{ p.website or "" }}">
       <label class="f">LinkedIn <span style="color:var(--accent)">*</span></label>
-      <input type="url" name="linkedin" value="{{ p.linkedin or "" }}" placeholder="https://linkedin.com/in/…" required>
+      <input type="text" inputmode="url" autocomplete="url" autocapitalize="off" spellcheck="false" name="linkedin" value="{{ p.linkedin or "" }}" placeholder="linkedin.com/in/your-name" required>
 
       <label class="f">Contact methods shown via the Connect button</label>
       <div id="contact-rows">

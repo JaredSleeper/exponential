@@ -1,6 +1,7 @@
 """Sessions, request context, authorization dependencies, rate limiting, CSRF."""
 import hashlib
 import hmac
+import re
 import secrets
 import threading
 import time
@@ -158,6 +159,13 @@ def sha256_hex(value: str) -> str:
 
 def normalize_email(email: str) -> str:
     return email.strip().lower()
+
+
+def normalize_url(raw: str) -> str:
+    s = raw.strip()
+    if s and not re.match(r"^[a-z][a-z0-9+.-]*://", s, re.IGNORECASE):
+        s = "https://" + s.lstrip("/")
+    return s
 
 
 def utcnow() -> datetime:
