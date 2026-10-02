@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Member sign-in — Exponential{% endblock %}
 {% block head %}
-<script async crossorigin="anonymous"
+<script id="clerk-js" async crossorigin="anonymous"
   data-clerk-publishable-key="{{ clerk_pk }}"
   src="{{ clerk_js_url }}"></script>
 {% endblock %}
@@ -15,7 +15,19 @@
 <script>
 (async () => {
   const status = document.getElementById('clerk-status');
+  const signinError = sessionStorage.getItem('clerk-signin-error');
+  if (signinError !== null) {
+    status.textContent = signinError;
+    sessionStorage.removeItem('clerk-signin-error');
+  }
   try {
+    if (!window.Clerk) {
+      await new Promise((resolve, reject) => {
+        const script = document.getElementById('clerk-js');
+        script.addEventListener('load', resolve, {once: true});
+        script.addEventListener('error', reject, {once: true});
+      });
+    }
     await Clerk.load();
     if (Clerk.session) {
       status.textContent = 'Signing you in…';
@@ -26,14 +38,14 @@
       });
       const data = await resp.json();
       if (data.ok) { location.href = data.next; return; }
-      await Clerk.signOut();
-      status.textContent = data.error || 'Sign-in failed — try again.';
-      Clerk.mountSignIn(document.getElementById('clerk-signin'), {});
+      sessionStorage.setItem('clerk-signin-error', data.error || 'Sign-in failed — try again.');
+      await Clerk.signOut({redirectUrl: window.location.href});
+      return;
     } else {
-      status.textContent = '';
+      if (signinError === null) status.textContent = '';
       Clerk.mountSignIn(document.getElementById('clerk-signin'), {
-        afterSignInUrl: window.location.href,
-        afterSignUpUrl: window.location.href,
+        fallbackRedirectUrl: window.location.href,
+        signUpFallbackRedirectUrl: window.location.href,
       });
     }
   } catch (e) {
