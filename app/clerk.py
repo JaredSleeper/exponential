@@ -48,7 +48,10 @@ def verify_session_token(token: str) -> dict:
     claims = jwt.decode(
         token, signing_key.key, algorithms=["RS256"], options={"verify_aud": False}, leeway=10
     )
-    if "azp" in claims and claims["azp"] != get_settings().app_base_url.rstrip("/"):
+    base = get_settings().app_base_url.rstrip("/")
+    scheme, _, host = base.partition("://")
+    allowed = {base, f"{scheme}://www.{host}"}
+    if "azp" in claims and claims["azp"] not in allowed:
         raise jwt.InvalidTokenError("unexpected azp")
     return claims
 

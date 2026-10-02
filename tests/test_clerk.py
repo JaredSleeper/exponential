@@ -63,3 +63,12 @@ def test_verify_session_token_rejects_different_signing_key(monkeypatch):
 
     with pytest.raises(jwt.InvalidTokenError):
         clerk.verify_session_token(token)
+
+
+def test_verify_session_token_accepts_www_origin(monkeypatch):
+    private_key, public_key = _make_keypair()
+    monkeypatch.setattr(clerk, "_jwks_client", lambda: StubJwksClient(public_key))
+    scheme, _, host = get_settings().app_base_url.rstrip("/").partition("://")
+    token = _make_token(private_key, f"{scheme}://www.{host}")
+
+    assert clerk.verify_session_token(token)["sub"] == "user_123"
