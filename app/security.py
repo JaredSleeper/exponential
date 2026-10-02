@@ -11,6 +11,7 @@ from datetime import UTC, datetime
 from fastapi import Depends, HTTPException, Request, Response
 from itsdangerous import BadSignature, URLSafeSerializer
 from sqlalchemy.orm import Session
+from starlette.datastructures import FormData
 
 from .config import get_settings
 from .db import get_db
@@ -96,13 +97,21 @@ def require_admin(user: User = Depends(require_user), db: Session = Depends(get_
 # ---------- CSRF (double-submit cookie for form posts) ----------
 
 CSRF_COOKIE = "exp_csrf"
+CSRF_MAX_AGE = 60 * 60 * 24 * 365
 
 
 def issue_csrf(response: Response) -> str:
     token = secrets.token_urlsafe(24)
-    response.set_cookie(CSRF_COOKIE, token, httponly=False, samesite="lax", path="/",
+    response.set_cookie(CSRF_COOKIE, token, max_age=CSRF_MAX_AGE,
+                        httponly=False, samesite="lax", path="/",
                         secure=get_settings().session_cookie_secure)
     return token
+
+
+def csrf_ok(request: Request, form: FormData) -> bool:
+    cookie = request.cookies.get(CSRF_COOKIE)
+    sent = form.get("csrf") or request.headers.get("x-csrf")
+    return bool(cookie and sent and hmac.compare_digest(str(sent), cookie))
 
 
 async def verify_csrf(request: Request) -> None:
@@ -113,8 +122,7 @@ async def verify_csrf(request: Request) -> None:
     if not cookie:
         raise HTTPException(403, "Missing CSRF token")
     form = await request.form()
-    sent = form.get("csrf") or request.headers.get("x-csrf")
-    if not sent or not hmac.compare_digest(str(sent), cookie):
+    if not csrf_ok(request, form):
         raise HTTPException(403, "Bad CSRF token")
 
 
@@ -159,6 +167,10 @@ def sha256_hex(value: str) -> str:
 
 def normalize_email(email: str) -> str:
     return email.strip().lower()
+
+
+def clean_text(s: str) -> str:
+    return s.replace("\x00", "")
 
 
 def normalize_url(raw: str) -> str:

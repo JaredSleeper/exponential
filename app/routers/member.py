@@ -9,7 +9,7 @@ from ..audit import audit
 from ..db import get_db
 from ..images import ImageRejected, process_headshot
 from ..models import Event, Member, Profile, RemovalRequest, User
-from ..security import normalize_url, require_active_member, utcnow, verify_csrf
+from ..security import clean_text, normalize_url, require_active_member, utcnow, verify_csrf
 from ..services.admissions import get_setting
 from ..storage import delete, put
 from ..web import interest_tags, redirect, render
@@ -137,24 +137,58 @@ async def save_profile(
     _=Depends(verify_csrf),
 ):
     form = await request.form()
+    fields = (
+        "display_name", "headline", "role", "organization", "working_on", "bio",
+        "come_to_me_for", "like_to_meet", "outside_ai", "website", "linkedin",
+    )
+    values = {field: clean_text(str(form.get(field, ""))).strip() for field in fields}
+    limits = {
+        "display_name": 120,
+        "headline": 200,
+        "role": 120,
+        "organization": 120,
+        "website": 300,
+        "linkedin": 300,
+    }
+    labels = {
+        "display_name": "Your name",
+        "headline": "Your one-line introduction",
+        "role": "Your role",
+        "organization": "Your organization",
+        "website": "Your website",
+        "linkedin": "Your LinkedIn URL",
+    }
     p = db.get(Profile, user.id) or Profile(user_id=user.id)
     if not db.get(Profile, user.id):
         db.add(p)
-    if not str(form.get("linkedin", "")).strip():
+    if not values["linkedin"]:
         return redirect("/members/profile", error="LinkedIn is required for every member.")
-    for f in ("display_name", "headline", "role", "organization", "working_on", "bio",
-              "come_to_me_for", "like_to_meet", "outside_ai", "website", "linkedin"):
-        value = str(form.get(f, "")).strip()
-        if f == "linkedin":
-            value = normalize_url(value)
-        setattr(p, f, value)
-    p.interests = [t.strip() for t in form.getlist("interests") if t.strip()][:14]
-    p.expertise = [t.strip() for t in str(form.get("expertise", "")).split(",") if t.strip()][:10]
+    for field, limit in limits.items():
+        value = normalize_url(values[field]) if field == "linkedin" else values[field]
+        if len(value) > limit:
+            return redirect(
+                "/members/profile",
+                error=f"{labels[field]} must be {limit} characters or fewer.",
+            )
+        values[field] = value
+    for field in fields:
+        setattr(p, field, values[field])
+    p.interests = [
+        clean_text(t).strip() for t in form.getlist("interests") if clean_text(t).strip()
+    ][:14]
+    p.expertise = [
+        clean_text(t).strip()
+        for t in str(form.get("expertise", "")).split(",")
+        if clean_text(t).strip()
+    ][:10]
     labels, urls = form.getlist("contact_label"), form.getlist("contact_url")
-    p.contact_links = [
-        {"label": l.strip()[:40], "url": u.strip()[:300]}
-        for l, u in zip(labels, urls) if l.strip() and u.strip()
-    ][:6]
+    p.contact_links = []
+    for label, url in zip(labels, urls):
+        label, url = clean_text(label).strip(), clean_text(url).strip()
+        if label and url:
+            p.contact_links.append({"label": label[:40], "url": url[:300]})
+        if len(p.contact_links) == 6:
+            break
     for b in ("show_email", "directory_visible", "willing_host", "willing_present", "willing_organize"):
         setattr(p, b, b in form)
     db.commit()
@@ -201,10 +235,16 @@ async def request_removal(
     _=Depends(verify_csrf),
     reason: str = Form(""),
 ):
+    reason = clean_text(reason).strip()
+    if len(reason) > 2000:
+        return redirect(
+            "/members/profile",
+            error="Your removal note must be 2000 characters or fewer.",
+        )
     existing = db.scalar(select(RemovalRequest).where(
         RemovalRequest.user_id == user.id, RemovalRequest.status == "open"))
     if not existing:
-        db.add(RemovalRequest(user_id=user.id, email=user.email, reason=reason.strip()[:2000]))
+        db.add(RemovalRequest(user_id=user.id, email=user.email, reason=reason))
         audit(db, "removal.requested", actor=user, target_type="user", target_id=user.id)
         db.commit()
     return redirect("/members/profile",

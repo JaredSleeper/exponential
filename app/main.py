@@ -2,13 +2,16 @@ import logging
 import secrets
 from contextlib import asynccontextmanager
 from pathlib import Path
+from urllib.parse import urlsplit
 
-from fastapi import FastAPI, Request
-from fastapi.responses import PlainTextResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import get_settings
 from .routers import admin, auth, media, member, onboarding, public
+from .security import CSRF_COOKIE, CSRF_MAX_AGE
+from .web import render
 
 logging.basicConfig(level=logging.INFO)
 
@@ -36,12 +39,14 @@ PRIVATE_PREFIXES = ("/members", "/directory", "/onboarding", "/admin", "/media",
 @app.middleware("http")
 async def security_and_csrf(request: Request, call_next):
     s = get_settings()
+    token = request.cookies.get(CSRF_COOKIE) or secrets.token_urlsafe(24)
+    request.state.csrf = token
     response = await call_next(request)
 
     # double-submit CSRF cookie for form posts
-    if "exp_csrf" not in request.cookies:
+    if not request.cookies.get(CSRF_COOKIE):
         response.set_cookie(
-            "exp_csrf", secrets.token_urlsafe(24),
+            CSRF_COOKIE, token, max_age=CSRF_MAX_AGE,
             httponly=False, samesite="lax", path="/", secure=s.session_cookie_secure,
         )
 
@@ -80,6 +85,36 @@ async def security_and_csrf(request: Request, call_next):
             "font-src https://fonts.gstatic.com; base-uri 'self'; form-action 'self'"
         )
     return response
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    csrf_failure = exc.status_code == 403 and exc.detail in (
+        "Missing CSRF token",
+        "Bad CSRF token",
+    )
+    if not csrf_failure or "text/html" not in request.headers.get("accept", "").lower():
+        return JSONResponse(
+            {"detail": exc.detail},
+            status_code=exc.status_code,
+            headers=exc.headers,
+        )
+
+    back_url = "/"
+    referer = request.headers.get("referer", "")
+    try:
+        parsed_referer = urlsplit(referer)
+    except ValueError:
+        parsed_referer = None
+    if (
+        parsed_referer
+        and parsed_referer.scheme == request.url.scheme
+        and parsed_referer.netloc.casefold() == request.url.netloc.casefold()
+    ):
+        path = parsed_referer.path or "/"
+        if path.startswith("/") and not path.startswith("//") and "\\" not in path:
+            back_url = path
+    return render(request, "error.html", status=403, back_url=back_url)
 
 
 @app.get("/healthz", include_in_schema=False)
