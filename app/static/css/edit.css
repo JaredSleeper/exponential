@@ -66,6 +66,7 @@ body.copy-edit-mode {
   position: fixed;
   z-index: 101;
   padding: 4px 8px;
+  background: #131311;
   white-space: nowrap;
 }
 

@@ -3,122 +3,88 @@
 <section class="hero">
   <div class="wrap">
     <img class="hero-mark" src="{{ static_url('assets/logo.png') }}" alt="Exponential NYC">
-    <h1 class="display hero-line">Participating in accelerating <br class="desk">technological change, <em>together.</em></h1>
+    <h1 class="display hero-line">{{ copy("home.headline", "Participating in accelerating technological change, together.") }}</h1>
     <div class="hero-foot">
-      <p class="eyebrow" style="margin:0">A New York community for the AI era</p>
-      <div>
-        <p class="lede">
-          Exponential is a selective community for people who are building, researching,
-          and thoughtfully applying AI. We gather in small rooms — salons, breakfasts,
-          dinners — to think out loud, compare notes, and form real relationships
-          around the most consequential technology of our time.
-        </p>
-        <div class="btn-row" style="margin-top:40px">
-          <a class="btn" href="/apply">Express interest</a>
-          <a class="btn btn-outline" href="/auth/sign-in">Member sign-in</a>
-        </div>
+      <p class="lede">{{ copy("home.intro", "Exponential is a small group of people in New York who build, study, and use AI. We meet for salons, breakfasts, and dinners, and keep the rooms small enough that everyone gets to talk.") }}</p>
+      <div class="btn-row">
+        <a class="btn" href="/apply">{{ copy("home.cta", "Express interest") }}</a>
+        <a class="text-link" href="/auth/sign-in">{{ copy("home.signin", "Member sign in") }}</a>
       </div>
     </div>
   </div>
 </section>
 
-<section class="section" style="border-top:1px solid var(--line)">
+<section class="section home-formats">
   <div class="wrap">
-    <div class="section-head">
-      <p class="eyebrow" style="margin:0">How we gather</p>
-      <h2 style="margin:0">Small rooms, long conversations.</h2>
+    <h2>{{ copy("home.formats.title", "What we do") }}</h2>
+    <dl class="formats">
+      <dt>{{ copy("home.salons.name", "Salons") }}</dt>
+      <dd>{{ copy("home.salons.body", "An evening built around one question, or a member's work in progress. Nothing is recorded.") }}</dd>
+      <dt>{{ copy("home.breakfasts.name", "Breakfasts") }}</dt>
+      <dd>{{ copy("home.breakfasts.body", "A small table before work, usually mixing people who wouldn't otherwise meet: researchers, founders, writers, investors.") }}</dd>
+      <dt>{{ copy("home.dinners.name", "Dinners") }}</dt>
+      <dd>{{ copy("home.dinners.body", "A few members at one long table. No agenda.") }}</dd>
+    </dl>
+  </div>
+</section>
+
+<section class="section home-notes">
+  <div class="wrap notes-grid">
+    <div>
+      <h3>{{ copy("home.who.title", "Who it's for") }}</h3>
+      <p>{{ copy("home.who.body", "People who build AI, research it, or use it seriously in their own field. Members show up, share what they know, and stay in touch between gatherings.") }}</p>
     </div>
-    <div class="triptych">
-      <div>
-        <span class="num">01</span>
-        <h3>Salons</h3>
-        <p>Evening conversations around a single question or a member's work-in-progress — hosted, discursive, unrecorded.</p>
-      </div>
-      <div>
-        <span class="num">02</span>
-        <h3>Breakfasts</h3>
-        <p>Small morning tables for people in adjacent corners of the field — researchers next to founders next to writers.</p>
-      </div>
-      <div>
-        <span class="num">03</span>
-        <h3>Dinners</h3>
-        <p>A handful of members around one table. The point is the people, not the programming.</p>
-      </div>
+    <div>
+      <h3>{{ copy("home.join.title", "How joining works") }}</h3>
+      <p>{{ copy("home.join.body", "Tell us what you're working on. We read every note, and if it looks like a fit we'll usually invite you to a gathering first. Membership comes after that, by invitation.") }}</p>
     </div>
   </div>
 </section>
 
-<section class="section values">
-  <div class="wrap">
-    <div class="values-grid">
-      <p class="eyebrow">What we value</p>
-      <div>
-        <h2>Curiosity, contribution,<br>and each other.</h2>
-        <p class="lede" style="margin-top:28px">
-          Membership is selective and small by design. We look for people who are
-          genuinely engaged with AI — building it, studying it, or applying it with
-          care — and who show up ready to give as much as they take. Gatherings are
-          the center of gravity; the relationships are the point.
-        </p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="band closer">
-  <div class="wrap">
-    <img src="{{ static_url('assets/logo-dark.png') }}" alt="" aria-hidden="true" class="closer-mark">
-    <div class="closer-grid">
-      <h2 style="margin:0">Small by design.<br>Open to the curious.</h2>
-      <div>
-        <p class="muted" style="font-size:17px;line-height:1.65;max-width:44ch">
-          Tell us what you're building or exploring. We read every note, and we
-          often begin by inviting people to a gathering before anything else.
-        </p>
-        <div class="btn-row" style="margin-top:32px">
-          <a class="btn btn-paper" href="/apply">Express interest</a>
-          <a class="btn btn-paper-outline" href="/auth/sign-in">Member sign-in</a>
-        </div>
-      </div>
-    </div>
+<section class="home-closer">
+  <div class="wrap closer-row">
+    <p class="serif closer-line">{{ copy("home.closer", "Want to come to something?") }}</p>
+    <a class="btn" href="/apply">{{ copy("home.closer_cta", "Express interest") }}</a>
   </div>
 </section>
 
 <style>
-.hero { padding: 104px 0 112px; }
-.hero-mark { height: clamp(44px, 6.2vw, 84px); width: auto; }
-.hero-line { margin-top: 88px; max-width: 18ch; }
-.hero-line em { font-style: italic; font-variation-settings: "SOFT" 100, "WONK" 1; color: var(--ink-soft); }
+.hero { padding: 96px 0 104px; }
+.hero-mark { height: clamp(40px, 5.4vw, 72px); width: auto; }
+.hero-line { margin-top: 80px; max-width: 17ch; text-wrap: balance; }
 .hero-foot {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 48px;
-  margin-top: 80px; padding-top: 36px; border-top: 1px solid var(--line); align-items: start;
+  display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 32px 64px;
+  margin-top: 72px; align-items: end;
 }
-.triptych {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 56px; margin-top: 64px;
+.hero-foot .btn-row { justify-content: flex-end; gap: 28px; }
+.home-formats { border-top: 1px solid var(--line); }
+.formats {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  margin-top: 48px; border-top: 1px solid var(--ink);
 }
-.triptych > div { border-top: 1px solid var(--ink); padding: 26px 0 8px; }
-.triptych .num { display: block; margin-bottom: 40px; }
-.triptych h3 { font-size: 26px; }
-.triptych p { margin-top: 14px; color: var(--ink-soft); font-size: 15.5px; line-height: 1.65; }
-.values { padding: 40px 0 120px; }
-.values-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 48px; align-items: start; }
-.closer { padding: 112px 0 120px; margin-bottom: -120px; }
-.closer-mark { height: 22px; width: auto; opacity: .55; }
-.closer-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 48px; align-items: start; margin-top: 72px; }
-.footer { margin-top: 120px; }
+.formats dt, .formats dd { padding: 26px 0; border-bottom: 1px solid var(--line); }
+.formats dt { font-family: var(--serif); font-size: 26px; letter-spacing: -0.015em; line-height: 1.25; }
+.formats dd { margin: 0; color: var(--ink-soft); font-size: 17px; line-height: 1.65; padding-top: 30px; padding-right: 8%; }
+.home-notes { padding-top: 24px; }
+.notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px 64px; }
+.notes-grid p { margin-top: 14px; color: var(--ink-soft); font-size: 17px; line-height: 1.65; max-width: 46ch; }
+.home-closer { border-top: 1px solid var(--line); }
+.closer-row { display: flex; justify-content: space-between; align-items: center; gap: 24px 40px; flex-wrap: wrap; padding-top: 64px; padding-bottom: 8px; }
+.closer-line { font-size: clamp(26px, 3vw, 36px); letter-spacing: -0.02em; line-height: 1.2; }
+.footer { margin-top: 72px; }
 
 @media (max-width: 720px) {
-  .hero { padding: 56px 0 64px; }
-  .hero-line { margin-top: 48px; }
-  .hero-line .desk { display: none; }
-  .hero-foot { grid-template-columns: 1fr; gap: 20px; margin-top: 48px; padding-top: 28px; }
-  .triptych { grid-template-columns: 1fr; margin-top: 40px; }
-  .triptych > div { padding: 22px 0 28px; }
-  .triptych .num { margin-bottom: 18px; }
-  .values { padding: 16px 0 72px; }
-  .values-grid, .closer-grid { grid-template-columns: 1fr; gap: 20px; }
-  .closer { padding: 72px 0 80px; margin-bottom: -72px; }
-  .closer-grid { margin-top: 44px; gap: 32px; }
+  .hero { padding: 48px 0 56px; }
+  .hero-line { margin-top: 44px; }
+  .hero-foot { grid-template-columns: 1fr; margin-top: 36px; gap: 28px; }
+  .hero-foot .btn-row { justify-content: flex-start; }
+  .formats { grid-template-columns: 1fr; margin-top: 32px; }
+  .formats dt { border-bottom: 0; padding: 22px 0 0; font-size: 23px; }
+  .formats dd { padding: 8px 0 22px; }
+  .home-notes { padding-top: 8px; }
+  .notes-grid { grid-template-columns: 1fr; gap: 36px; }
+  .closer-row { padding-top: 48px; }
+  .footer { margin-top: 56px; }
 }
 </style>
 {% endblock %}

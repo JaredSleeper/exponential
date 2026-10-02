@@ -14,7 +14,7 @@
         <span class="num" style="display:block;margin-bottom:12px">01</span>
         <h3>Come to a gathering</h3>
         {% if events %}
-        <p class="muted" style="margin-top:8px">Next up: <strong>{{ events[0].title }}</strong> — {{ events[0].starts_at | ny_time }}{% if events[0].host %}, hosted by {{ events[0].host }}{% endif %}.</p>
+        <p class="muted" style="margin-top:8px">Next up: <strong>{{ events[0].title }}</strong>, {{ events[0].starts_at | ny_time }}{% if events[0].host %}, hosted by {{ events[0].host }}{% endif %}.</p>
         {% if events[0].external_url %}<div style="margin-top:12px"><a class="btn btn-small" href="{{ events[0].external_url }}" target="_blank" rel="noopener">Register</a></div>{% endif %}
         {% else %}
         <p class="muted" style="margin-top:8px">The next gathering will appear on your <a href="/members">member home</a>.</p>
@@ -24,7 +24,7 @@
       <div class="card flat" style="padding:26px 0 30px;border-top-color:var(--line)">
         <span class="num" style="display:block;margin-bottom:12px">02</span>
         <h3>Meet the members</h3>
-        <p class="muted" style="margin-top:8px">Browse the directory — find someone working on a question you share, or someone you met at dinner whose name slipped away.</p>
+        <p class="muted" style="margin-top:8px">Browse the directory to find people working on the same questions, or to look up someone you met at dinner.</p>
         <div style="margin-top:12px"><a class="btn btn-small btn-outline" href="/directory">Explore the directory</a></div>
       </div>
 
@@ -32,8 +32,7 @@
         <span class="num" style="display:block;margin-bottom:12px">03</span>
         <h3>Join the conversation on Signal</h3>
         <p class="muted" style="margin-top:8px">
-          Between gatherings we talk on Signal. Joining is your choice — and note
-          that Signal membership is approved separately from the website, so there
+          Between gatherings we talk on Signal. Joining is optional. Signal membership is approved separately from the website, so there
           may be a short wait while a host adds you.
         </p>
         {% if signal_url %}
@@ -47,8 +46,7 @@
         <span class="num" style="display:block;margin-bottom:12px">04</span>
         <h3>How to participate</h3>
         <p class="muted" style="margin-top:8px">
-          RSVP honestly and come curious. Offer what you know — everyone here was
-          invited because they have something to give. If you'd like to host or
+          RSVP only if you plan to come. Share what you know. If you'd like to host or
           present, say so on your profile and a cohost will find you.
         </p>
       </div>
