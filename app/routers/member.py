@@ -9,7 +9,7 @@ from ..audit import audit
 from ..db import get_db
 from ..images import ImageRejected, process_headshot
 from ..models import Event, Member, Profile, RemovalRequest, User
-from ..security import require_active_member, utcnow, verify_csrf
+from ..security import normalize_url, require_active_member, utcnow, verify_csrf
 from ..services.admissions import get_setting
 from ..storage import delete, put
 from ..web import interest_tags, redirect, render
@@ -144,7 +144,10 @@ async def save_profile(
         return redirect("/members/profile", error="LinkedIn is required for every member.")
     for f in ("display_name", "headline", "role", "organization", "working_on", "bio",
               "come_to_me_for", "like_to_meet", "outside_ai", "website", "linkedin"):
-        setattr(p, f, str(form.get(f, "")).strip())
+        value = str(form.get(f, "")).strip()
+        if f == "linkedin":
+            value = normalize_url(value)
+        setattr(p, f, value)
     p.interests = [t.strip() for t in form.getlist("interests") if t.strip()][:14]
     p.expertise = [t.strip() for t in str(form.get("expertise", "")).split(",") if t.strip()][:10]
     labels, urls = form.getlist("contact_label"), form.getlist("contact_url")

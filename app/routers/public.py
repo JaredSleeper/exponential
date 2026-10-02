@@ -9,7 +9,7 @@ from ..audit import audit
 from ..db import get_db
 from ..emailer import queue_email
 from ..models import Application, Invitation
-from ..security import normalize_email, rate_limit, sha256_hex, utcnow, verify_csrf
+from ..security import normalize_email, normalize_url, rate_limit, sha256_hex, utcnow, verify_csrf
 from ..web import redirect, render
 
 router = APIRouter()
@@ -42,7 +42,8 @@ async def apply_submit(
     referrer: str = Form(""),
 ):
     rate_limit(request, "apply", 5, 600)
-    name, email, linkedin = name.strip(), normalize_email(email), linkedin.strip()
+    name, email = name.strip(), normalize_email(email)
+    linkedin = normalize_url(linkedin)
     errors = []
     if not name:
         errors.append("Please tell us your name.")
@@ -51,7 +52,7 @@ async def apply_submit(
     if not linkedin:
         errors.append("Please include your LinkedIn profile.")
     elif not LINKEDIN_RE.match(linkedin):
-        errors.append("Please use a full LinkedIn URL, like https://linkedin.com/in/your-name.")
+        errors.append("Please use your LinkedIn profile URL, like linkedin.com/in/your-name.")
     if not working_on.strip():
         errors.append("Tell us a little about what you're working on or exploring.")
     if not why_join.strip():
