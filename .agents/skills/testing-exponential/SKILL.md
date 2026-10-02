@@ -56,3 +56,10 @@ description: How to run and test the Exponential member portal locally (env vars
 - HTML responses, including `/`, use `Cache-Control: private, no-cache` so the user-dependent nav is revalidated; static assets retain their existing caching behavior.
 - `www.exponential.nyc` serves the app directly (no redirect to the apex) and shares the Clerk Frontend API. A ticket sign-in works there too because the azp allowlist includes www.
 - Do not touch Railway vars, the prod DB, or real accounts; do not send invitations or emails.
+
+### Verifying Clerk sign-out (prod)
+- In Clerk mode `POST /auth/sign-out` renders `auth/signout_clerk.html` ("Signing you out…"), which calls `Clerk.signOut({redirectUrl:'/'})`. The page only lasts about 0.4s, so a normal screenshot misses it. Attach a Playwright CDP listener (framenavigated + console + request/response) *before* clicking Sign out in the UI, and call `page.screenshot()` when the main frame navigates to `/auth/sign-out`.
+- Proof that Clerk was signed out: the listener shows `POST clerk.<domain>/v1/client/sessions` → 200, and `GET https://api.clerk.com/v1/sessions?user_id=<id>` reports the status as `removed` (it was `active` before the fix).
+- To check that sign-in doesn't happen silently, click "Sign in" and wait at least 6s. The URL should stay `/auth/sign-in` with the "Email address" field showing.
+- Redirect checks after typing a URL: run `performance.getEntriesByType('navigation')[0].redirectCount` in the console. A value of 1 plus a new `timeOrigin` proves a redirect happened even when the screenshot looks the same.
+- Check `Cache-Control` with GET; `HEAD /` returns 405.
