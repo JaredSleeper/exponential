@@ -67,7 +67,11 @@ async def security_and_csrf(request: Request, call_next):
             "base-uri 'self'; form-action 'self'"
         )
     else:
-        response.headers["Cache-Control"] = "public, max-age=60"
+        is_static = path == "/static" or path.startswith("/static/")
+        is_html = response.headers.get("content-type", "").startswith("text/html")
+        response.headers["Cache-Control"] = (
+            "private, no-cache" if is_html and not is_static else "public, max-age=60"
+        )
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
             "script-src 'self' 'unsafe-inline'; "

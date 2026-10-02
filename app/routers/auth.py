@@ -5,6 +5,7 @@ outbox (console adapter prints it; in dev the code is also shown on-screen,
 clearly labelled INSECURE DEV). Verifying proves inbox control, same shape as
 the production Clerk flow.
 """
+import base64
 import logging
 import secrets
 from datetime import timedelta
@@ -59,6 +60,14 @@ def _safe_next(next_url: str) -> str:
     return next_url if next_url.startswith("/") and not next_url.startswith("//") else "/members"
 
 
+def _clerk_js_url(publishable_key: str) -> str:
+    try:
+        host = base64.b64decode(publishable_key.split("_", 2)[2] + "==").decode().rstrip("$")
+        return f"https://{host}/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
+    except (ValueError, IndexError, UnicodeDecodeError):
+        return ""
+
+
 # ---------- sign-in pages ----------
 
 @router.get("/auth/sign-in")
@@ -67,16 +76,9 @@ def sign_in(request: Request, next: str = "/", user: User | None = Depends(curre
     if user:
         return redirect(_safe_next(next) if next != "/" else "/members")
     if s.auth_provider == "clerk":
-        import base64
-        clerk_js_url = ""
-        try:
-            host = base64.b64decode(
-                s.clerk_publishable_key.split("_", 2)[2] + "==").decode().rstrip("$")
-            clerk_js_url = f"https://{host}/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
-        except (ValueError, IndexError, UnicodeDecodeError):
-            pass
         return render(request, "auth/signin_clerk.html", next=_safe_next(next),
-                      clerk_pk=s.clerk_publishable_key, clerk_js_url=clerk_js_url)
+                      clerk_pk=s.clerk_publishable_key,
+                      clerk_js_url=_clerk_js_url(s.clerk_publishable_key))
     return render(request, "auth/signin_dev.html", next=_safe_next(next))
 
 
@@ -177,7 +179,13 @@ def clerk_exchange(payload: ClerkPayload, request: Request, db: Session = Depend
 
 @router.post("/auth/sign-out")
 async def sign_out(request: Request, _=Depends(verify_csrf)):
-    resp = redirect("/")
+    s = get_settings()
+    if s.auth_provider == "clerk":
+        resp = render(request, "auth/signout_clerk.html",
+                      clerk_pk=s.clerk_publishable_key,
+                      clerk_js_url=_clerk_js_url(s.clerk_publishable_key))
+    else:
+        resp = redirect("/")
     clear_session(resp)
     return resp
 
