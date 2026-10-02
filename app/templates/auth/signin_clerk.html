@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Member sign-in — Exponential{% endblock %}
 {% block head %}
-<script async crossorigin="anonymous"
+<script id="clerk-js" async crossorigin="anonymous"
   data-clerk-publishable-key="{{ clerk_pk }}"
   src="{{ clerk_js_url }}"></script>
 {% endblock %}
@@ -16,6 +16,13 @@
 (async () => {
   const status = document.getElementById('clerk-status');
   try {
+    if (!window.Clerk) {
+      await new Promise((resolve, reject) => {
+        const script = document.getElementById('clerk-js');
+        script.addEventListener('load', resolve, {once: true});
+        script.addEventListener('error', reject, {once: true});
+      });
+    }
     await Clerk.load();
     if (Clerk.session) {
       status.textContent = 'Signing you in…';
