@@ -1,0 +1,88 @@
+body.copy-edit-mode {
+  padding-bottom: 64px;
+}
+
+[data-copy-key] {
+  outline: 1px dashed transparent;
+  outline-offset: 4px;
+}
+
+[data-copy-key]:hover,
+[data-copy-key]:focus {
+  outline-color: #9d998f;
+}
+
+.edit-bar {
+  position: fixed;
+  z-index: 100;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-sizing: border-box;
+  padding: 12px 24px;
+  color: #fbfaf8;
+  background: #131311;
+  font: 400 14px/1.4 "DM Sans", sans-serif;
+}
+
+.edit-error {
+  flex: 1;
+  color: #fbfaf8;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-bar button,
+.edit-reset {
+  border: 1px solid rgba(251, 250, 248, 0.4);
+  border-radius: 2px;
+  padding: 7px 12px;
+  color: #fbfaf8;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.edit-bar [data-edit-save] {
+  border-color: #fbfaf8;
+  color: #131311;
+  background: #fbfaf8;
+}
+
+.edit-bar button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.edit-reset {
+  position: fixed;
+  z-index: 101;
+  padding: 4px 8px;
+  background: #131311;
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .edit-bar {
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    padding: 8px 12px;
+  }
+
+  .edit-error {
+    order: 1;
+    flex-basis: 100%;
+  }
+
+  .edit-actions {
+    margin-left: auto;
+  }
+}

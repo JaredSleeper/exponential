@@ -44,11 +44,11 @@ button { font-family: inherit; }
 .nav .brand { display: flex; align-items: center; }
 .nav .brand img { height: 22px; width: auto; transition: opacity .2s; }
 .nav .brand:hover img { opacity: .6; }
-.nav-links { display: flex; gap: 34px; align-items: center; }
+.nav-links { display: flex; gap: 28px; align-items: center; }
 .nav-links form { display: flex; align-items: center; }
 .nav-links a, .nav-links button {
-  color: var(--ink-soft); font-size: 11.5px; font-weight: 500;
-  letter-spacing: 0.16em; text-transform: uppercase; text-decoration: none;
+  color: var(--ink-soft); font-size: 14.5px; font-weight: 400;
+  letter-spacing: 0; text-decoration: none;
   background: none; border: 0; padding: 0; cursor: pointer; transition: color .15s;
 }
 .nav-links a:hover, .nav-links button:hover { color: var(--ink); }
@@ -64,8 +64,8 @@ h2 { font-size: clamp(28px, 3.6vw, 44px); line-height: 1.1; letter-spacing: -0.0
 h3 { font-size: 22px; letter-spacing: -0.015em; line-height: 1.25; }
 .display { font-size: clamp(40px, 6.4vw, 92px); line-height: .98; letter-spacing: -0.035em; font-weight: 300; }
 .eyebrow {
-  font-family: var(--sans); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
-  color: var(--ink-faint); font-weight: 500; margin-bottom: 20px;
+  font-family: var(--sans); font-size: 14px; letter-spacing: 0;
+  color: var(--ink-faint); font-weight: 400; margin-bottom: 14px;
 }
 .lede { font-size: 18px; color: var(--ink-soft); line-height: 1.7; max-width: 58ch; }
 .muted { color: var(--ink-soft); }
@@ -77,8 +77,8 @@ h3 { font-size: 22px; letter-spacing: -0.015em; line-height: 1.25; }
 /* ---------- buttons ---------- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-  padding: 15px 28px; border-radius: 999px;
-  font-family: var(--sans); font-size: 11.5px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase;
+  padding: 13px 22px; border-radius: var(--radius);
+  font-family: var(--sans); font-size: 15px; font-weight: 500; letter-spacing: 0;
   border: 1px solid var(--ink); cursor: pointer; transition: background .18s, color .18s, border-color .18s, opacity .18s;
   background: var(--ink); color: var(--bg); text-decoration: none; line-height: 1;
 }
@@ -88,7 +88,7 @@ h3 { font-size: 22px; letter-spacing: -0.015em; line-height: 1.25; }
 .btn-accent { background: var(--ink); border-color: var(--ink); color: var(--bg); }
 .btn-ghost { background: transparent; border-color: var(--line); color: var(--ink-soft); }
 .btn-ghost:hover { border-color: var(--ink); color: var(--ink); background: transparent; }
-.btn-small { padding: 10px 18px; font-size: 10.5px; }
+.btn-small { padding: 8px 14px; font-size: 13.5px; }
 .btn-danger { background: transparent; color: var(--danger); border-color: var(--danger); }
 .btn-danger:hover { background: var(--danger); color: #fff; }
 .btn-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
@@ -96,7 +96,8 @@ h3 { font-size: 22px; letter-spacing: -0.015em; line-height: 1.25; }
 .btn-paper:hover { background: #fff; color: var(--ink); }
 .btn-paper-outline { background: transparent; color: var(--bg); border-color: rgba(251,250,248,.45); }
 .btn-paper-outline:hover { background: var(--bg); color: var(--ink); border-color: var(--bg); }
-.link-arrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; text-decoration: none; color: var(--ink); }
+.link-arrow { font-size: 15px; text-decoration: none; color: var(--ink); }
+.text-link { font-size: 15px; color: var(--ink); text-underline-offset: 5px; }
 .link-arrow::after { content: " →"; }
 .link-arrow:hover { color: var(--ink-soft); }
 
@@ -111,8 +112,8 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 40px 0; }
 
 /* ---------- forms ---------- */
 label.f {
-  display: block; font-size: 11px; font-weight: 500; margin: 28px 0 6px;
-  letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-faint);
+  display: block; font-size: 14px; font-weight: 500; margin: 28px 0 4px;
+  letter-spacing: 0; color: var(--ink-soft);
 }
 input[type=text], input[type=email], input[type=url], input[type=password],
 input[type=date], input[type=time], input[type=number], textarea, select {
@@ -150,7 +151,7 @@ input[type=file] { font-size: 14px; color: var(--ink-soft); }
 /* ---------- progress ---------- */
 .progress { height: 1px; background: var(--line); margin: 12px 0 40px; }
 .progress > div { height: 100%; background: var(--ink); transition: width .3s; }
-.steps { display: flex; gap: 12px; font-size: 11px; color: var(--ink-faint); margin-bottom: 8px; letter-spacing: .18em; text-transform: uppercase; }
+.steps { display: flex; gap: 12px; font-size: 14px; color: var(--ink-faint); margin-bottom: 8px; }
 
 /* ---------- directory ---------- */
 .dir-toolbar {
@@ -171,7 +172,7 @@ input[type=file] { font-size: 14px; color: var(--ink-soft); }
 .dir-card:hover .ph, .dir-card:hover .avatar { filter: grayscale(0%); }
 .dir-card .body { padding: 18px 0 0; }
 .dir-card .name { font-family: var(--serif); font-size: 21px; letter-spacing: -0.015em; line-height: 1.2; }
-.dir-card .role { font-size: 12px; color: var(--ink-faint); margin-top: 5px; letter-spacing: .04em; text-transform: uppercase; }
+.dir-card .role { font-size: 14px; color: var(--ink-faint); margin-top: 4px; }
 .dir-card .head { font-size: 14.5px; color: var(--ink-soft); margin-top: 10px; line-height: 1.5; }
 .dir-card .ints { margin-top: 12px; }
 .avatar {
@@ -183,15 +184,14 @@ input[type=file] { font-size: 14px; color: var(--ink-soft); }
 /* ---------- tables ---------- */
 table.t { width: 100%; border-collapse: collapse; font-size: 14px; }
 table.t th {
-  text-align: left; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; font-weight: 500;
+  text-align: left; font-size: 13px; font-weight: 500;
   color: var(--ink-faint); padding: 10px 14px 12px 0; border-bottom: 1px solid var(--ink);
 }
 table.t td { padding: 14px 14px 14px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
 
 /* ---------- badges ---------- */
 .badge {
-  display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px;
-  letter-spacing: .08em; text-transform: uppercase;
+  display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12.5px;
   border: 1px solid var(--line); color: var(--ink-soft); font-weight: 500;
 }
 .badge.warn { color: #7a5c22; border-color: #e6d9b8; }
@@ -201,7 +201,7 @@ table.t td { padding: 14px 14px 14px 0; border-bottom: 1px solid var(--line); ve
 /* ---------- admin ---------- */
 .admin-nav { display: flex; gap: 26px; flex-wrap: wrap; margin: 26px 0 44px; border-bottom: 1px solid var(--line); }
 .admin-nav a {
-  padding: 0 0 14px; font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase;
+  padding: 0 0 14px; font-size: 14.5px;
   color: var(--ink-faint); text-decoration: none; border-bottom: 1px solid transparent; margin-bottom: -1px;
 }
 .admin-nav a:hover { color: var(--ink); }
@@ -209,13 +209,13 @@ table.t td { padding: 14px 14px 14px 0; border-bottom: 1px solid var(--line); ve
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 32px; margin: 36px 0; }
 .stat { border-top: 1px solid var(--ink); padding: 18px 0 0; }
 .stat .n { font-family: var(--serif); font-size: 40px; letter-spacing: -0.03em; line-height: 1; }
-.stat .l { font-size: 10.5px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .18em; margin-top: 10px; }
+.stat .l { font-size: 14px; color: var(--ink-faint); margin-top: 8px; }
 
 /* ---------- profile page ---------- */
 .profile-head { display: grid; grid-template-columns: 260px 1fr; gap: 56px; align-items: start; }
 .profile-head .ph img, .profile-head .ph .avatar { width: 100%; aspect-ratio: 1; object-fit: cover; }
 .kv { margin: 32px 0; }
-.kv .k { font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 8px; }
+.kv .k { font-size: 14px; color: var(--ink-faint); margin-bottom: 6px; }
 .kv .v { font-size: 16px; line-height: 1.65; color: var(--ink); }
 
 /* ---------- photo crop ---------- */
@@ -235,15 +235,15 @@ table.t td { padding: 14px 14px 14px 0; border-bottom: 1px solid var(--line); ve
 /* ---------- misc ---------- */
 .event-card { display: grid; grid-template-columns: 180px 1fr; gap: 32px; padding: 32px 0; border-top: 1px solid var(--line); }
 .event-card .when { font-family: var(--serif); font-size: 19px; letter-spacing: -0.01em; line-height: 1.35; }
-.event-card .when .time { display: block; margin-top: 4px; font-family: var(--sans); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); }
+.event-card .when .time { display: block; margin-top: 4px; font-family: var(--sans); font-size: 14px; color: var(--ink-faint); }
 .empty { text-align: center; padding: 96px 20px; color: var(--ink-faint); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-.footer { border-top: 1px solid var(--line); padding: 56px 0 64px; margin-top: 120px; font-size: 12px; color: var(--ink-faint); letter-spacing: .08em; text-transform: uppercase; }
+.footer { border-top: 1px solid var(--line); padding: 48px 0 56px; margin-top: 120px; font-size: 14px; color: var(--ink-faint); }
 .footer img { height: 18px; width: auto; opacity: .9; }
 .footer a { color: var(--ink-soft); text-decoration: none; }
 .footer a:hover { color: var(--ink); }
 .devbanner {
-  background: var(--accent-soft); color: var(--ink-soft); font-size: 11px; padding: 8px 16px;
-  text-align: center; letter-spacing: .12em; text-transform: uppercase; border-bottom: 1px solid var(--line);
+  background: var(--accent-soft); color: var(--ink-soft); font-size: 13px; padding: 8px 16px;
+  text-align: center; border-bottom: 1px solid var(--line);
 }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
 .contact-row { display: grid; grid-template-columns: 1fr 2fr auto; gap: 12px; margin-bottom: 8px; align-items: end; }
@@ -260,7 +260,7 @@ table.t td { padding: 14px 14px 14px 0; border-bottom: 1px solid var(--line); ve
   .nav .brand img { height: 18px; }
   .nav .brand { flex-shrink: 0; }
   .nav-links { gap: 16px 18px; flex-wrap: wrap; }
-  .nav-links a, .nav-links button { font-size: 10.5px; letter-spacing: .12em; white-space: nowrap; }
+  .nav-links a, .nav-links button { font-size: 14px; white-space: nowrap; }
   .nav-links.many { flex-basis: 100%; }
   .section { padding: 56px 0; }
   table.t { font-size: 13px; }

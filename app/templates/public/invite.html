@@ -11,7 +11,7 @@
       {% endif %}
       <p class="lede" style="margin-top:18px">
         This invitation is for <strong>{{ email }}</strong>. To accept it, sign in
-        (or create your account) with exactly that email address — you'll verify
+        (or create your account) with exactly that email address. You'll verify
         it along the way. The link is single-use and expires.
       </p>
       <div class="btn-row" style="margin-top:28px">
@@ -30,7 +30,7 @@
       <p class="lede" style="margin-top:18px">
         Invitation links are valid for a limited time. If you received this at
         <strong>{{ email }}</strong>, reply to your invitation email or contact your
-        host — an organizer can send a fresh link.
+        host. An organizer can send a fresh link.
       </p>
 
     {% elif state == "revoked" %}
@@ -42,8 +42,7 @@
       <p class="eyebrow">Already used</p>
       <h1>This invitation was already accepted.</h1>
       <p class="lede" style="margin-top:18px">
-        Each link works once. If it's yours, <a href="/auth/sign-in">sign in</a> —
-        your membership is waiting.
+        Each link works once. If it's yours, <a href="/auth/sign-in">sign in</a> and you're all set.
       </p>
 
     {% elif state == "mismatch" %}
@@ -61,7 +60,7 @@
     {% elif state == "capacity" %}
       <p class="eyebrow">At capacity</p>
       <h1>We're at our membership cap.</h1>
-      <p class="lede" style="margin-top:18px">{{ detail or "The community is full right now." }} Your invitation is still valid — please try again shortly or contact your host.</p>
+      <p class="lede" style="margin-top:18px">{{ detail or "The community is full right now." }} Your invitation is still valid. Try again soon, or contact your host.</p>
 
     {% else %}
       <p class="eyebrow">Not found</p>

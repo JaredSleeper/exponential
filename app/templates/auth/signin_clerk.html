@@ -38,7 +38,7 @@
       });
       const data = await resp.json();
       if (data.ok) { location.href = data.next; return; }
-      sessionStorage.setItem('clerk-signin-error', data.error || 'Sign-in failed — try again.');
+      sessionStorage.setItem('clerk-signin-error', data.error || 'Sign-in failed. Try again.');
       await Clerk.signOut({redirectUrl: window.location.href});
       return;
     } else {

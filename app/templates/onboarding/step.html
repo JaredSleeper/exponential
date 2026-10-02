@@ -10,7 +10,7 @@
     <div class="progress"><div style="width:{{ progress }}%"></div></div>
 
     {% if step == 1 %}
-    <p class="eyebrow">Welcome — let's set up your profile</p>
+    <p class="eyebrow">Welcome. Let's set up your profile.</p>
     <h2>The essentials</h2>
     <form method="post" action="/onboarding/save" style="margin-top:20px">
       <input type="hidden" name="csrf" value="{{ csrf }}">
@@ -31,7 +31,7 @@
     {% elif step == 2 %}
     <p class="eyebrow">Your headshot</p>
     <h2>A photo other members will recognize.</h2>
-    <p class="muted" style="margin-top:10px">A clear, recent photo of you helps members recognize you — it'll show in the member directory. JPEG, PNG, or WebP, under 8 MB; metadata is stripped on upload. <strong>Optional</strong> — if you skip this we'll use a simple monogram, and you can add a photo later.</p>
+    <p class="muted" style="margin-top:10px">A clear, recent photo of you helps members recognize you in the directory. JPEG, PNG, or WebP, under 8 MB; metadata is stripped on upload. <strong>Optional.</strong> If you skip this we'll use a simple monogram, and you can add a photo later.</p>
     {% if p.photo_key %}
     <div style="margin:20px 0"><img src="/media/{{ p.photo_key or "" }}" style="width:140px;border-radius:10px"></div>
     {% endif %}
