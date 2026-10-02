@@ -50,4 +50,9 @@ description: How to run and test the Exponential member portal locally (env vars
 - If the exchange fails, the page stores the error in sessionStorage, signs out of Clerk and reloads `/auth/sign-in`, where it shows the error above the widget. Check the `/auth/clerk` response itself too.
 - If the exchange fails before `_upsert_user` (any 401), no app `users` row is created.
 - Expected after a successful exchange for a non-member: redirect to `next` (default `/`), nav shows only "Sign out"; `/members` and `/directory` → 303 `/` (`require_member`, no seat); `/admin` → 404.
+- In Clerk mode, POST `/auth/sign-out` clears the app session cookie and renders a "Signing you out…" page. That page loads Clerk.js and calls `Clerk.signOut({redirectUrl: '/'})`, falling back to `/` on error or after 5 seconds. Dev auth continues to redirect directly to `/`.
+- To end leftover Clerk sessions between browser runs, use the Backend API: `GET /v1/sessions?user_id=..`, then `POST /v1/sessions/{id}/revoke`. Deleting the test user also ends their sessions.
+- After `/auth/clerk` succeeds, the page navigates away immediately. Playwright's `response.json()` may fail ("No resource with given identifier"), so read `response.status` first and treat the body as optional.
+- HTML responses, including `/`, use `Cache-Control: private, no-cache` so the user-dependent nav is revalidated; static assets retain their existing caching behavior.
+- `www.exponential.nyc` serves the app directly (no redirect to the apex) and shares the Clerk Frontend API. A ticket sign-in works there too because the azp allowlist includes www.
 - Do not touch Railway vars, the prod DB, or real accounts; do not send invitations or emails.

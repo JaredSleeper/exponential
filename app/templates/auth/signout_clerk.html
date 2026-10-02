@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Signing out — Exponential{% endblock %}
+{% block head %}
+<script id="clerk-js" async crossorigin="anonymous"
+  data-clerk-publishable-key="{{ clerk_pk }}"
+  src="{{ clerk_js_url }}"></script>
+{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap-narrow" style="max-width:440px;padding-top:56px">
+    <div class="muted" style="margin-bottom:16px">Signing you out…</div>
+  </div>
+</section>
+<script>
+window.setTimeout(() => { location.href = '/'; }, 5000);
+(async () => {
+  try {
+    if (!window.Clerk) {
+      await new Promise((resolve, reject) => {
+        const script = document.getElementById('clerk-js');
+        script.addEventListener('load', resolve, {once: true});
+        script.addEventListener('error', reject, {once: true});
+      });
+    }
+    await Clerk.load();
+    await Clerk.signOut({redirectUrl: '/'});
+  } catch (e) {
+    location.href = '/';
+  }
+})();
+</script>
+{% endblock %}
