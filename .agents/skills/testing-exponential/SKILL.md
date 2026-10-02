@@ -40,3 +40,14 @@ description: How to run and test the Exponential member portal locally (env vars
 
 ## Devin Secrets Needed
 - None for local dev testing (all adapters are dev/console by default).
+
+## Production (Clerk) sign-in testing — https://exponential.nyc
+- Prod runs AUTH_PROVIDER=clerk with a pk_live/sk_live instance (Frontend API `clerk.exponential.nyc`). Secret: `CLERK_SECRET_KEY` (session secret). Never print it; check it works with `GET https://api.clerk.com/v1/instance` (should say `environment_type: production`).
+- **Org secret `CLERK_JWKS_URL` points at a *different* app's dev instance (SituationMonitor, `*.clerk.accounts.dev`), and it's injected into every shell.** When running `app.clerk` locally, always override `CLERK_JWKS_URL=https://clerk.exponential.nyc/.well-known/jwks.json`, or you'll get a misleading "Unable to find a signing key that matches" error.
+- Throwaway user: `POST /v1/users {"email_address":["devin-test+<ts>@exponential.nyc"],"skip_password_requirement":true,"skip_password_checks":true}` returns the email already `verified`. Ticket: `POST /v1/sign_in_tokens {"user_id":..,"expires_in_seconds":900}` (the ticket is single-use). Cleanup: `DELETE /v1/users/{id}`, then `GET` should return 404.
+- `POST /v1/sessions` is dev-instance only (`request_invalid_for_environment`), so you can't mint session JWTs server-side in prod.
+- Sign in in the browser by opening `/auth/sign-in?__clerk_ticket=<ticket>`. The mounted SignIn widget consumes it, reloads, and the page script POSTs `{token,next}` to `/auth/clerk`. To keep the ticket and JWT out of logs, drive this with Playwright `connect_over_cdp("http://localhost:29229")`. Read the ticket from a 0600 file, and capture the `/auth/clerk` request/response with `page.on('request'/'response')`. Session JWTs expire in about 60s, so verify a captured token locally right away.
+- If the exchange fails, the page stores the error in sessionStorage, signs out of Clerk and reloads `/auth/sign-in`, where it shows the error above the widget. Check the `/auth/clerk` response itself too.
+- If the exchange fails before `_upsert_user` (any 401), no app `users` row is created.
+- Expected after a successful exchange for a non-member: redirect to `next` (default `/`), nav shows only "Sign out"; `/members` and `/directory` → 303 `/` (`require_member`, no seat); `/admin` → 404.
+- Do not touch Railway vars, the prod DB, or real accounts; do not send invitations or emails.
