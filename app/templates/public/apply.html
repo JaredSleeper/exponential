@@ -3,13 +3,8 @@
 {% block body %}
 <section class="section">
   <div class="wrap-narrow">
-    <p class="eyebrow">Express interest</p>
-    <h1>Tell us about yourself.</h1>
-    <p class="lede" style="margin-top:22px">
-      Exponential is small and selective. This starts a conversation — it isn't
-      membership, and it doesn't guarantee one. We read every note by hand, and
-      we often begin by inviting promising applicants to a gathering.
-    </p>
+    <h1>{{ copy("apply.title", "Tell us about yourself.") }}</h1>
+    <p class="lede" style="margin-top:22px">{{ copy("apply.intro", "We read every note ourselves. If it looks like a fit, we usually start by inviting you to a gathering. Membership comes later, by invitation.") }}</p>
 
     {% if errors %}
     <div class="flash error">{% for e in errors %}{{ e }}<br>{% endfor %}</div>
@@ -38,7 +33,7 @@
       <label class="f">Referrer, if any</label>
       <input type="text" name="referrer" value="{{ form.referrer if form else '' }}">
 
-      <div class="btn-row" style="margin-top:40px"><button class="btn" type="submit">Submit</button><span class="small faint">We read every note by hand.</span></div>
+      <div class="btn-row" style="margin-top:40px"><button class="btn" type="submit">Submit</button></div>
     </form>
   </div>
 </section>

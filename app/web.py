@@ -9,6 +9,8 @@ from zoneinfo import ZoneInfo
 from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from jinja2 import pass_context
+from markupsafe import Markup, escape
 from sqlalchemy.orm import Session
 
 from .config import get_settings
@@ -16,6 +18,7 @@ from .db import SessionLocal
 from .models import Member, User
 from .security import _load_user
 from .services.admissions import get_setting
+from .site_copy import load_overrides, validate_key
 
 APP_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(APP_DIR / "templates"))
@@ -63,6 +66,33 @@ templates.env.filters["ny_time"] = ny_time
 templates.env.globals["static_url"] = static_url
 
 
+def _rendered_copy(value: str) -> Markup:
+    return Markup("<br>").join(escape(part) for part in value.split("\n"))
+
+
+@pass_context
+def copy(ctx, key: str, default: str) -> Markup:
+    validate_key(key)
+    overrides = ctx.get("copy_overrides", {})
+    rendered = _rendered_copy(overrides.get(key, default))
+    if not ctx.get("edit_mode", False):
+        return rendered
+    return Markup(
+        '<span data-copy-key="{}" data-copy-default="{}">{}</span>'
+    ).format(escape(key), escape(default), rendered)
+
+
+@pass_context
+def copy_attr(ctx, key: str, default: str) -> Markup:
+    validate_key(key)
+    overrides = ctx.get("copy_overrides", {})
+    return escape(overrides.get(key, default))
+
+
+templates.env.globals["copy"] = copy
+templates.env.globals["copy_attr"] = copy_attr
+
+
 def render(
     request: Request,
     template: str,
@@ -82,6 +112,13 @@ def render(
         ctx.setdefault("is_member", bool(member and member.status in ("invited", "active")))
         ctx.setdefault("is_active_member", bool(member and member.status == "active"))
         ctx.setdefault("is_admin", bool(user and user.is_admin))
+        ctx.setdefault("copy_overrides", load_overrides(db))
+        ctx.setdefault("copy_editable", template.startswith("public/"))
+        ctx.setdefault(
+            "edit_mode",
+            bool(ctx["is_admin"] and ctx["copy_editable"]
+                 and request.query_params.get("edit") == "1"),
+        )
         ctx.setdefault("csrf", request.cookies.get("exp_csrf", ""))
         ctx.setdefault("s", get_settings())
         ctx.setdefault("notice", request.query_params.get("notice", ""))

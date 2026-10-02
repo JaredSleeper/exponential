@@ -202,6 +202,15 @@ class EmailMessage(Base):
     sent_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
 
 
+class SiteCopy(Base):
+    __tablename__ = "site_copy"
+
+    key: Mapped[str] = mapped_column(String(80), primary_key=True)
+    value: Mapped[str] = mapped_column(Text, nullable=False)
+    updated_by: Mapped[str] = mapped_column(String(320), default="")
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utcnow, onupdate=utcnow)
+
+
 class AuditEvent(Base):
     __tablename__ = "audit_events"
 
@@ -210,7 +219,7 @@ class AuditEvent(Base):
     actor_email: Mapped[str] = mapped_column(String(320), default="")
     action: Mapped[str] = mapped_column(String(60), index=True)
     target_type: Mapped[str] = mapped_column(String(40), default="")
-    target_id: Mapped[str] = mapped_column(String(40), default="")
+    target_id: Mapped[str] = mapped_column(String(80), default="")
     details: Mapped[dict] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utcnow)
 

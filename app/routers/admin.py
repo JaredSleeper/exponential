@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, Form, Request, UploadFile
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy import desc, or_, select
 from sqlalchemy.orm import Session
 
@@ -33,6 +33,7 @@ from ..models import (
 from ..security import normalize_email, require_admin, sha256_hex, utcnow, verify_csrf
 from ..services import admissions
 from ..services.admissions import get_setting, set_setting
+from ..site_copy import MAX_LEN, delete_copy, invalidate, set_copy, validate_key
 from ..storage import put
 from ..web import redirect, render
 
@@ -60,6 +61,60 @@ def dashboard(request: Request, user: User = Admin, db: Session = Depends(get_db
             select(RemovalRequest).where(RemovalRequest.status == "open")))),
     }
     return render(request, "admin/dashboard.html", db=db, user=user, stats=stats)
+
+
+@router.post("/admin/copy")
+async def save_site_copy(
+    user: User = Admin,
+    db: Session = Depends(get_db),
+    _=Depends(verify_csrf),
+    changes: str = Form(""),
+):
+    try:
+        changes = json.loads(changes)
+    except json.JSONDecodeError:
+        return JSONResponse({"detail": "Changes must be a JSON object."}, status_code=422)
+    if not isinstance(changes, dict) or not all(
+        isinstance(key, str) and isinstance(value, str)
+        for key, value in changes.items()
+    ):
+        return JSONResponse({"detail": "Changes must be a JSON object of strings."},
+                            status_code=422)
+
+    for key, value in changes.items():
+        try:
+            validate_key(key)
+        except ValueError:
+            return JSONResponse({"detail": "Invalid copy key."}, status_code=422)
+        if len(value) > MAX_LEN:
+            return JSONResponse({"detail": "Copy value is too long."}, status_code=422)
+
+    for key, value in changes.items():
+        set_copy(db, key, value, user.email)
+    keys = sorted(changes)
+    audit(db, "copy.update", user, "site_copy", "", {"keys": keys})
+    db.commit()
+    invalidate()
+    return JSONResponse({"ok": True})
+
+
+@router.post("/admin/copy/reset")
+async def reset_site_copy(
+    user: User = Admin,
+    db: Session = Depends(get_db),
+    _=Depends(verify_csrf),
+    key: str = Form(""),
+):
+    try:
+        validate_key(key)
+    except ValueError:
+        return JSONResponse({"detail": "Invalid copy key."}, status_code=422)
+
+    delete_copy(db, key)
+    audit(db, "copy.reset", user, "site_copy", key)
+    db.commit()
+    invalidate()
+    return JSONResponse({"ok": True})
 
 
 # ---------- applications ----------

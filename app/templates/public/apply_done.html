@@ -2,15 +2,10 @@
 {% block title %}Thank you — Exponential{% endblock %}
 {% block body %}
 <section class="section">
-  <div class="wrap-narrow" style="text-align:center;padding-top:60px">
-    <p class="eyebrow">Received</p>
-    <h1>Thank you.</h1>
-    <p class="lede" style="margin-top:18px">
-      We've received your note. If it seems like a fit, we'll be in touch —
-      sometimes starting with an invitation to a gathering rather than
-      membership itself.
-    </p>
-    <div style="margin-top:32px"><a class="btn btn-outline" href="/">Back home</a></div>
+  <div class="wrap-narrow" style="padding-top:60px">
+    <h1>{{ copy("done.title", "Thanks, we got it.") }}</h1>
+    <p class="lede" style="margin-top:18px">{{ copy("done.body", "We'll read it and get back to you. If it seems like a fit, the first step is usually an invitation to a gathering.") }}</p>
+    <div style="margin-top:32px"><a class="btn btn-outline" href="/">Back to the homepage</a></div>
   </div>
 </section>
 {% endblock %}

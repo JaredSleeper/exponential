@@ -3,13 +3,8 @@
 {% block body %}
 <section class="section">
   <div class="wrap-narrow">
-    <p class="eyebrow">Gatherings</p>
-    <h1>Salons, breakfasts, and dinners.</h1>
-    <p class="lede" style="margin-top:18px">
-      Members gather in small rooms across New York — evening salons, morning
-      breakfasts, and occasional long dinners. Upcoming gatherings are shared
-      privately with members; venues are shared only with confirmed attendees.
-    </p>
+    <h1>{{ copy("gatherings.title", "Salons, breakfasts, and dinners.") }}</h1>
+    <p class="lede" style="margin-top:18px">{{ copy("gatherings.intro", "Members meet in small groups around New York. Dates and venues go to members directly.") }}</p>
     <div class="btn-row" style="margin-top:28px">
       <a class="btn btn-accent" href="/apply">Express interest</a>
     </div>

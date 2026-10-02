@@ -4,11 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}Exponential{% endblock %}</title>
-<meta name="description" content="Exponential — a New York community for people building, researching, and thoughtfully applying AI.">
+<meta name="description" content="{{ copy_attr("meta.description", "Exponential is a small New York group for people who build, study, and use AI.") }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..600,0..100,0..1;1,9..144,300..600,0..100,0..1&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ static_url('css/main.css') }}">
+{% if edit_mode %}
+<link rel="stylesheet" href="{{ static_url('css/edit.css') }}">
+<script defer src="{{ static_url('js/edit.js') }}"></script>
+{% endif %}
 <link rel="icon" href="{{ static_url('assets/favicon.png') }}" type="image/png">
 {% block head %}{% endblock %}
 </head>
@@ -27,6 +31,7 @@
       <a href="/events" class="{{ 'here' if path.startswith('/events') }}">Gatherings</a>
       <a href="/members/profile" class="{{ 'here' if path.startswith('/members/profile') }}">Profile</a>
       {% endif %}
+      {% if is_admin and copy_editable and not edit_mode %}<a href="{{ request.url.path }}?edit=1">Edit page</a>{% endif %}
       {% if is_admin %}<a href="/admin" class="{{ 'here' if path.startswith('/admin') }}">Admin</a>{% endif %}
       {% if user %}
       <form method="post" action="/auth/sign-out">
@@ -51,7 +56,7 @@
   <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px 32px">
     <img src="{{ static_url('assets/logo.png') }}" alt="Exponential NYC">
     <span style="display:flex;gap:28px;flex-wrap:wrap">
-      <span>New York City</span>
+      <span>{{ copy("footer.city", "New York City") }}</span>
       <a href="/apply">Express interest</a>
       <a href="/auth/sign-in">Sign in</a>
     </span>
