@@ -22,12 +22,12 @@
     <form method="post" action="/members/profile" style="margin-top:8px">
       <input type="hidden" name="csrf" value="{{ csrf }}">
       <label class="f">Name *</label>
-      <input type="text" name="display_name" required value="{{ p.display_name or "" }}">
+      <input type="text" name="display_name" required maxlength="120" value="{{ p.display_name or "" }}">
       <label class="f">One-line introduction *</label>
-      <input type="text" name="headline" required value="{{ p.headline or "" }}">
+      <input type="text" name="headline" required maxlength="200" value="{{ p.headline or "" }}">
       <div class="grid-2">
-        <div><label class="f">Role</label><input type="text" name="role" value="{{ p.role or "" }}"></div>
-        <div><label class="f">Organization</label><input type="text" name="organization" value="{{ p.organization or "" }}"></div>
+        <div><label class="f">Role</label><input type="text" name="role" maxlength="120" value="{{ p.role or "" }}"></div>
+        <div><label class="f">Organization</label><input type="text" name="organization" maxlength="120" value="{{ p.organization or "" }}"></div>
       </div>
       <label class="f">Working on / exploring *</label>
       <textarea name="working_on" required>{{ p.working_on or "" }}</textarea>
@@ -59,9 +59,9 @@
 
       <hr class="soft">
       <label class="f">Website</label>
-      <input type="url" name="website" value="{{ p.website or "" }}">
+      <input type="url" name="website" maxlength="300" value="{{ p.website or "" }}">
       <label class="f">LinkedIn <span style="color:var(--accent)">*</span></label>
-      <input type="text" inputmode="url" autocomplete="url" autocapitalize="off" spellcheck="false" name="linkedin" value="{{ p.linkedin or "" }}" placeholder="linkedin.com/in/your-name" required>
+      <input type="text" inputmode="url" autocomplete="url" autocapitalize="off" spellcheck="false" name="linkedin" maxlength="300" value="{{ p.linkedin or "" }}" placeholder="linkedin.com/in/your-name" required>
 
       <label class="f">Contact methods shown via the Connect button</label>
       <div id="contact-rows">
@@ -88,7 +88,7 @@
     <p class="muted small" style="margin:10px 0">Signed in as {{ user.email }}. To delete your account and profile, request removal and an organizer will confirm. What we retain is documented in our privacy note.</p>
     <form method="post" action="/members/removal">
       <input type="hidden" name="csrf" value="{{ csrf }}">
-      <input type="text" name="reason" placeholder="Optional note for the organizers">
+      <input type="text" name="reason" maxlength="2000" placeholder="Optional note for the organizers">
       <button class="btn btn-small btn-danger" type="submit" style="margin-top:10px">Request account removal</button>
     </form>
   </div>

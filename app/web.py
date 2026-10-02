@@ -119,7 +119,7 @@ def render(
             bool(ctx["is_admin"] and ctx["copy_editable"]
                  and request.query_params.get("edit") == "1"),
         )
-        ctx.setdefault("csrf", request.cookies.get("exp_csrf", ""))
+        ctx.setdefault("csrf", request.state.csrf)
         ctx.setdefault("s", get_settings())
         ctx.setdefault("notice", request.query_params.get("notice", ""))
         ctx.setdefault("error", request.query_params.get("error", ""))

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Page expired — Exponential{% endblock %}
+{% block body %}
+<section class="section">
+  <div class="wrap-narrow">
+    <h1>This page has expired.</h1>
+    <p class="lede" style="margin-top:18px">Please return to the form and try again.</p>
+    <div style="margin-top:28px"><a class="btn btn-outline" href="{{ back_url }}">Return to the previous page</a></div>
+  </div>
+</section>
+{% endblock %}

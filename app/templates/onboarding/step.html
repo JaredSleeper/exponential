@@ -88,9 +88,9 @@
       <input type="hidden" name="csrf" value="{{ csrf }}">
       <input type="hidden" name="step" value="4">
       <label class="f">Website</label>
-      <input type="url" name="website" value="{{ p.website or "" }}" placeholder="https://">
+      <input type="url" name="website" maxlength="300" value="{{ p.website or "" }}" placeholder="https://">
       <label class="f">LinkedIn <span style="color:var(--accent)">*</span></label>
-      <input type="text" inputmode="url" autocomplete="url" autocapitalize="off" spellcheck="false" name="linkedin" value="{{ p.linkedin or "" }}" placeholder="linkedin.com/in/your-name" required>
+      <input type="text" inputmode="url" autocomplete="url" autocapitalize="off" spellcheck="false" name="linkedin" maxlength="300" value="{{ p.linkedin or "" }}" placeholder="linkedin.com/in/your-name" required>
 
       <label class="f">Contact methods shown to members</label>
       <p class="hint">Your sign-in email is private by default. Choose exactly what the "Connect" button reveals.</p>

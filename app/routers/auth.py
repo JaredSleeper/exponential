@@ -23,6 +23,7 @@ from ..db import get_db
 from ..emailer import queue_email
 from ..models import Invitation, LoginCode, Member, User
 from ..security import (
+    clean_text,
     clear_session,
     create_session,
     current_user,
@@ -93,7 +94,11 @@ async def sign_in_start(
     if not get_settings().is_dev_auth:
         return redirect("/auth/sign-in")
     rate_limit(request, "login", 10, 600)
-    email = normalize_email(email)
+    email = normalize_email(clean_text(email))
+    if len(email) > 320:
+        return render(request, "auth/signin_dev.html", status=422,
+                      error="Email addresses must be 320 characters or fewer.",
+                      next=_safe_next(next))
     if "@" not in email:
         return render(request, "auth/signin_dev.html", status=422,
                       error="Enter a valid email address.", next=_safe_next(next))
@@ -128,7 +133,11 @@ async def sign_in_verify(
     if not get_settings().is_dev_auth:
         return redirect("/auth/sign-in")
     rate_limit(request, "verify", 12, 600)
-    email = normalize_email(email)
+    email = normalize_email(clean_text(email))
+    if len(email) > 320:
+        return render(request, "auth/verify_dev.html", status=422, email=email,
+                      next=_safe_next(next),
+                      error="Email addresses must be 320 characters or fewer.")
     row = db.scalar(
         select(LoginCode)
         .where(LoginCode.email == email, LoginCode.used == False)

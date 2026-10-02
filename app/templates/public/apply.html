@@ -13,16 +13,16 @@
     <form method="post" action="/apply" style="margin-top:48px;padding-top:12px;border-top:1px solid var(--ink)">
       <input type="hidden" name="csrf" value="{{ csrf }}">
       <label class="f">Name *</label>
-      <input type="text" name="name" required value="{{ form.name if form else '' }}">
+      <input type="text" name="name" required maxlength="120" value="{{ form.name if form else '' }}">
 
       <label class="f">Email *</label>
-      <input type="email" name="email" required value="{{ form.email if form else '' }}">
+      <input type="email" name="email" required maxlength="320" value="{{ form.email if form else '' }}">
 
       <label class="f">Role / company, if applicable</label>
       <input type="text" name="role_company" value="{{ form.role_company if form else '' }}">
 
       <label class="f">LinkedIn *</label>
-      <input type="text" inputmode="url" autocomplete="url" autocapitalize="off" spellcheck="false" name="linkedin" required placeholder="linkedin.com/in/your-name" value="{{ form.linkedin if form else '' }}">
+      <input type="text" inputmode="url" autocomplete="url" autocapitalize="off" spellcheck="false" name="linkedin" required maxlength="300" placeholder="linkedin.com/in/your-name" value="{{ form.linkedin if form else '' }}">
 
       <label class="f">What are you working on or exploring? *</label>
       <textarea name="working_on" required>{{ form.working_on if form else '' }}</textarea>

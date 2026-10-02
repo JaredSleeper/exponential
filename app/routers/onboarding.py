@@ -10,7 +10,7 @@ from ..db import get_db
 from ..emailer import queue_email
 from ..images import ImageRejected, monogram_avatar, process_headshot
 from ..models import Member, Profile, User
-from ..security import normalize_url, require_member, utcnow, verify_csrf
+from ..security import clean_text, normalize_url, require_member, utcnow, verify_csrf
 from ..services import admissions
 from ..storage import put
 from ..web import interest_tags, redirect, render
@@ -25,6 +25,24 @@ STEP_FIELDS = {
     1: ("display_name", "headline", "role", "organization"),
     3: ("working_on", "bio", "come_to_me_for", "like_to_meet", "outside_ai"),
     4: ("website", "linkedin", "show_email"),
+}
+
+PROFILE_LIMITS = {
+    "display_name": 120,
+    "headline": 200,
+    "role": 120,
+    "organization": 120,
+    "website": 300,
+    "linkedin": 300,
+}
+
+PROFILE_LABELS = {
+    "display_name": "Your name",
+    "headline": "Your one-line introduction",
+    "role": "Your role",
+    "organization": "Your organization",
+    "website": "Your website",
+    "linkedin": "Your LinkedIn URL",
 }
 
 
@@ -63,24 +81,43 @@ async def onboarding_save(
         if field == "show_email":
             p.show_email = "show_email" in form
         else:
-            value = str(form.get(field, "")).strip()
+            value = clean_text(str(form.get(field, ""))).strip()
             if field == "linkedin":
                 value = normalize_url(value)
+            limit = PROFILE_LIMITS.get(field)
+            if limit is not None and len(value) > limit:
+                return redirect(
+                    f"/onboarding?step={step}",
+                    error=f"{PROFILE_LABELS[field]} must be {limit} characters or fewer.",
+                )
             setattr(p, field, value)
     if step == 3:
-        p.interests = [t.strip() for t in form.getlist("interests") if t.strip()][:12]
-        extra = [t.strip() for t in str(form.get("extra_interests", "")).split(",") if t.strip()]
+        p.interests = [
+            clean_text(t).strip() for t in form.getlist("interests") if clean_text(t).strip()
+        ][:12]
+        extra = [
+            clean_text(t).strip()
+            for t in str(form.get("extra_interests", "")).split(",")
+            if clean_text(t).strip()
+        ]
         p.interests = list(dict.fromkeys(p.interests + extra))[:14]
-        p.expertise = [t.strip() for t in str(form.get("expertise", "")).split(",") if t.strip()][:10]
+        p.expertise = [
+            clean_text(t).strip()
+            for t in str(form.get("expertise", "")).split(",")
+            if clean_text(t).strip()
+        ][:10]
         p.willing_host = "willing_host" in form
         p.willing_present = "willing_present" in form
         p.willing_organize = "willing_organize" in form
     if step == 4:
         labels, urls = form.getlist("contact_label"), form.getlist("contact_url")
-        p.contact_links = [
-            {"label": l.strip()[:40], "url": u.strip()[:300]}
-            for l, u in zip(labels, urls) if l.strip() and u.strip()
-        ][:6]
+        p.contact_links = []
+        for label, url in zip(labels, urls):
+            label, url = clean_text(label).strip(), clean_text(url).strip()
+            if label and url:
+                p.contact_links.append({"label": label[:40], "url": url[:300]})
+            if len(p.contact_links) == 6:
+                break
         if "norms_accepted" in form and not p.norms_accepted_at:
             p.norms_accepted_at = utcnow()
         if "norms_accepted" not in form:

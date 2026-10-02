@@ -9,7 +9,15 @@ from ..audit import audit
 from ..db import get_db
 from ..emailer import queue_email
 from ..models import Application, Invitation
-from ..security import normalize_email, normalize_url, rate_limit, sha256_hex, utcnow, verify_csrf
+from ..security import (
+    clean_text,
+    csrf_ok,
+    normalize_email,
+    normalize_url,
+    rate_limit,
+    sha256_hex,
+    utcnow,
+)
 from ..web import redirect, render
 
 router = APIRouter()
@@ -32,7 +40,6 @@ def apply_form(request: Request):
 async def apply_submit(
     request: Request,
     db: Session = Depends(get_db),
-    _=Depends(verify_csrf),
     name: str = Form(""),
     email: str = Form(""),
     role_company: str = Form(""),
@@ -41,10 +48,38 @@ async def apply_submit(
     why_join: str = Form(""),
     referrer: str = Form(""),
 ):
+    form_data = await request.form()
+    name, email, role_company, linkedin, working_on, why_join, referrer = (
+        clean_text(value)
+        for value in (name, email, role_company, linkedin, working_on, why_join, referrer)
+    )
+    form_values = {
+        "name": name,
+        "email": email,
+        "role_company": role_company,
+        "linkedin": linkedin,
+        "working_on": working_on,
+        "why_join": why_join,
+        "referrer": referrer,
+    }
+    if not csrf_ok(request, form_data):
+        return render(
+            request,
+            "public/apply.html",
+            status=422,
+            errors=["Your session timed out. Your answers are still here; press Submit again."],
+            form=form_values,
+        )
     rate_limit(request, "apply", 5, 600)
     name, email = name.strip(), normalize_email(email)
     linkedin = normalize_url(linkedin)
     errors = []
+    if len(name) > 120:
+        errors.append("Your name must be 120 characters or fewer.")
+    if len(email) > 320:
+        errors.append("Your email address must be 320 characters or fewer.")
+    if len(linkedin) > 300:
+        errors.append("Your LinkedIn URL must be 300 characters or fewer.")
     if not name:
         errors.append("Please tell us your name.")
     if not EMAIL_RE.match(email):
