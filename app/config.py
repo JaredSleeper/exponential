@@ -66,8 +66,17 @@ class Settings(BaseSettings):
     invite_ttl_days: int = 14
     login_code_ttl_minutes: int = 10
 
+    # --- AI scoring ---
+    anthropic_api_key: str = ""
+    exa_api_key: str = ""
+    scoring_model: str = "claude-sonnet-4-6"
+
     # --- Misc ---
     seed_demo_data: bool = False  # staging/dev only — never in production
+
+    @property
+    def scoring_enabled(self) -> bool:
+        return bool(self.anthropic_api_key and self.exa_api_key)
 
     @property
     def is_dev_auth(self) -> bool:

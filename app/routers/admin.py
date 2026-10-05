@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy import desc, or_, select
 from sqlalchemy.orm import Session
 
+from .. import scoring
 from ..audit import audit
 from ..config import get_settings
 from ..db import get_db
@@ -44,7 +45,26 @@ EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 Admin = Depends(require_admin)
 
 
+def _score_return_url(value: str, default: str) -> str:
+    return value if value.startswith("/admin/") else default
+
+
 # ---------- dashboard ----------
+
+@router.post("/admin/scores/run")
+def run_score_backfill(
+    user: User = Admin,
+    _=Depends(verify_csrf),
+    next: str = Form(""),
+):
+    target = _score_return_url(next, "/admin/applications")
+    started = scoring.start_backfill()
+    if not get_settings().scoring_enabled:
+        return redirect(target, error="AI scoring isn't configured.")
+    if not started:
+        return redirect(target, error="Scoring is already running.")
+    return redirect(target, notice="Scoring in the background. Refresh in a minute or two.")
+
 
 @router.get("/admin")
 def dashboard(request: Request, user: User = Admin, db: Session = Depends(get_db)):
@@ -121,15 +141,68 @@ async def reset_site_copy(
 
 @router.get("/admin/applications")
 def applications(request: Request, status: str = "", referrer: str = "",
-                 user: User = Admin, db: Session = Depends(get_db)):
-    stmt = select(Application).order_by(desc(Application.created_at))
+                 sort: str = "", user: User = Admin, db: Session = Depends(get_db)):
+    stmt = select(Application)
     if status in APPLICATION_STATUSES:
         stmt = stmt.where(Application.status == status)
     if referrer:
         stmt = stmt.where(Application.referrer.ilike(f"%{referrer}%"))
+    if sort == "score":
+        stmt = stmt.order_by(
+            Application.score.is_(None),
+            desc(Application.score),
+            desc(Application.created_at),
+        )
+    else:
+        stmt = stmt.order_by(desc(Application.created_at))
     rows = list(db.scalars(stmt))
     return render(request, "admin/applications.html", db=db, user=user, rows=rows,
-                  status_filter=status, referrer=referrer, statuses=APPLICATION_STATUSES)
+                  status_filter=status, referrer=referrer, statuses=APPLICATION_STATUSES,
+                  sort_filter=sort, scoring_enabled=get_settings().scoring_enabled)
+
+
+@router.post("/admin/applications/{app_id}/score")
+def application_score(
+    app_id: str,
+    user: User = Admin,
+    db: Session = Depends(get_db),
+    _=Depends(verify_csrf),
+    score: str = Form(""),
+    next: str = Form(""),
+):
+    application = db.get(Application, app_id)
+    if not application:
+        return redirect("/admin/applications", error="Application not found.")
+    target = _score_return_url(next, "/admin/applications")
+    raw_score = score.strip()
+    if not raw_score:
+        application.score = None
+        application.score_source = ""
+        application.score_reason = ""
+        application.scored_at = None
+        notice = "Score cleared."
+        score_value = None
+    else:
+        try:
+            score_value = int(raw_score)
+        except ValueError:
+            return redirect(target, error="Score must be a whole number from 1 to 10.")
+        if not 1 <= score_value <= 10:
+            return redirect(target, error="Score must be a whole number from 1 to 10.")
+        application.score = score_value
+        application.score_source = "admin"
+        application.scored_at = utcnow()
+        notice = "Score saved."
+    audit(
+        db,
+        "application.score",
+        actor=user,
+        target_type="application",
+        target_id=app_id,
+        details={"score": score_value},
+    )
+    db.commit()
+    return redirect(target, notice=notice)
 
 
 @router.get("/admin/applications/{app_id}")
@@ -298,19 +371,71 @@ async def invitation_resend(inv_id: str, request: Request, user: User = Admin,
 # ---------- members ----------
 
 @router.get("/admin/members")
-def members(request: Request, status: str = "", user: User = Admin,
+def members(request: Request, status: str = "", sort: str = "", user: User = Admin,
             db: Session = Depends(get_db)):
     stmt = (select(Member, User, Profile)
             .join(User, User.id == Member.user_id)
-            .outerjoin(Profile, Profile.user_id == Member.user_id)
-            .order_by(desc(Member.created_at)))
+            .outerjoin(Profile, Profile.user_id == Member.user_id))
     if status:
         stmt = stmt.where(Member.status == status)
+    if sort == "score":
+        stmt = stmt.order_by(
+            Member.score.is_(None),
+            desc(Member.score),
+            desc(Member.created_at),
+        )
+    else:
+        stmt = stmt.order_by(desc(Member.created_at))
     rows = list(db.execute(stmt))
     return render(request, "admin/members.html", db=db, user=user, rows=rows,
                   status_filter=status, cap=admissions.get_cap(db),
                   seats=admissions.seats_used(db),
-                  outstanding=admissions.outstanding_invitations(db))
+                  outstanding=admissions.outstanding_invitations(db),
+                  sort_filter=sort, scoring_enabled=get_settings().scoring_enabled)
+
+
+@router.post("/admin/members/{uid}/score")
+def member_score(
+    uid: str,
+    user: User = Admin,
+    db: Session = Depends(get_db),
+    _=Depends(verify_csrf),
+    score: str = Form(""),
+    next: str = Form(""),
+):
+    member = db.get(Member, uid)
+    if not member:
+        return redirect("/admin/members", error="Member not found.")
+    target = _score_return_url(next, "/admin/members")
+    raw_score = score.strip()
+    if not raw_score:
+        member.score = None
+        member.score_source = ""
+        member.score_reason = ""
+        member.scored_at = None
+        notice = "Score cleared."
+        score_value = None
+    else:
+        try:
+            score_value = int(raw_score)
+        except ValueError:
+            return redirect(target, error="Score must be a whole number from 1 to 10.")
+        if not 1 <= score_value <= 10:
+            return redirect(target, error="Score must be a whole number from 1 to 10.")
+        member.score = score_value
+        member.score_source = "admin"
+        member.scored_at = utcnow()
+        notice = "Score saved."
+    audit(
+        db,
+        "member.score",
+        actor=user,
+        target_type="member",
+        target_id=uid,
+        details={"score": score_value},
+    )
+    db.commit()
+    return redirect(target, notice=notice)
 
 
 @router.get("/admin/members/{uid}")
@@ -636,13 +761,13 @@ def _csv(filename: str, rows: list[list]) -> StreamingResponse:
 @router.get("/admin/export/members.csv")
 def export_members(user: User = Admin, db: Session = Depends(get_db)):
     rows = [["email", "name", "status", "welcome_cohost", "needs_followup",
-             "approved_at", "created_at"]]
+             "approved_at", "created_at", "score"]]
     for m, u, p in db.execute(
             select(Member, User, Profile)
             .join(User, User.id == Member.user_id)
             .outerjoin(Profile, Profile.user_id == Member.user_id)):
         rows.append([u.email, p.display_name if p else "", m.status, m.welcome_cohost,
-                     m.needs_followup, m.approved_at or "", m.created_at])
+                     m.needs_followup, m.approved_at or "", m.created_at, m.score])
     audit(db, "export.members", actor=user)
     db.commit()
     return _csv("members.csv", rows)
@@ -652,10 +777,10 @@ def export_members(user: User = Admin, db: Session = Depends(get_db)):
 def export_applications(user: User = Admin, db: Session = Depends(get_db)):
 
     rows = [["name", "email", "role_company", "linkedin", "referrer", "status",
-             "suggest_gathering", "created_at"]]
+             "suggest_gathering", "created_at", "score"]]
     for a in db.scalars(select(Application)):
         rows.append([a.name, a.email, a.role_company, a.linkedin, a.referrer,
-                     a.status, a.suggest_gathering, a.created_at])
+                     a.status, a.suggest_gathering, a.created_at, a.score])
     audit(db, "export.applications", actor=user)
     db.commit()
     return _csv("applications.csv", rows)
