@@ -236,3 +236,17 @@ def test_sign_in_email_is_nul_cleaned_and_length_checked(db):
     assert too_long.status_code == 422
     assert "320 characters or fewer" in too_long.text
     assert db.query(LoginCode).count() == 1
+
+
+def test_admin_lists_show_linkedin(client, db):
+    r = client.post("/apply", data=valid_application(csrf(client)), follow_redirects=False)
+    assert r.status_code == 303
+    admin = admin_client()
+    page = admin.get("/admin/applications").text
+    assert '<th>LinkedIn</th>' in page
+    assert '<a href="https://linkedin.com/in/ada" target="_blank" rel="noopener">in/ada</a>' in page
+
+    make_member(TestClient(app, base_url="http://testserver"), admin, db, "member@example.com")
+    page = admin.get("/admin/members").text
+    assert '<th>LinkedIn</th>' in page
+    assert ">in/test-member</a>" in page
