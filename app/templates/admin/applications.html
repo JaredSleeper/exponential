@@ -18,22 +18,44 @@
       <button class="btn" type="submit">Filter</button>
     </form>
 
+    <div style="margin-bottom:18px">
+      {% if scoring_enabled %}
+      <form method="post" action="/admin/scores/run" style="display:inline">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <input type="hidden" name="next" value="{{ request.url.path }}{% if request.url.query %}?{{ request.url.query }}{% endif %}">
+        <button class="btn btn-small btn-outline">Score unscored with AI</button>
+      </form>
+      {% else %}
+      <span class="small muted">AI scoring needs ANTHROPIC_API_KEY and EXA_API_KEY.</span>
+      {% endif %}
+    </div>
+
     <div class="card" style="padding:0;overflow:auto">
       <table class="t">
-        <thead><tr><th>Name</th><th>Email</th><th>LinkedIn</th><th>Referrer</th><th>Status</th><th>Flags</th><th>Applied</th></tr></thead>
+        <thead><tr><th>Name</th><th>Email</th><th>LinkedIn</th><th>
+          <a href="{% if sort_filter == 'score' %}/admin/applications{% if status_filter or referrer %}?{% endif %}{% if status_filter %}status={{ status_filter|urlencode }}{% endif %}{% if status_filter and referrer %}&amp;{% endif %}{% if referrer %}referrer={{ referrer|urlencode }}{% endif %}{% else %}/admin/applications?{% if status_filter %}status={{ status_filter|urlencode }}&amp;{% endif %}{% if referrer %}referrer={{ referrer|urlencode }}&amp;{% endif %}sort=score{% endif %}">Score</a>
+        </th><th>Referrer</th><th>Status</th><th>Flags</th><th>Applied</th></tr></thead>
         <tbody>
         {% for a in rows %}
         <tr>
           <td><a href="/admin/applications/{{ a.id }}"><strong>{{ a.name }}</strong></a></td>
           <td>{{ a.email }}</td>
           <td>{% if a.linkedin %}<a href="{{ a.linkedin }}" target="_blank" rel="noopener">{{ a.linkedin.split('linkedin.com/', 1)[-1].rstrip('/') }}</a>{% else %}—{% endif %}</td>
+          <td title="{{ a.score_reason if a.score_reason else '' }}">
+            <form method="post" action="/admin/applications/{{ a.id }}/score" style="display:inline">
+              <input type="hidden" name="csrf" value="{{ csrf }}">
+              <input type="hidden" name="next" value="{{ request.url.path }}{% if request.url.query %}?{{ request.url.query }}{% endif %}">
+              <input type="number" name="score" min="1" max="10" step="1" value="{{ a.score if a.score is not none else '' }}" onchange="this.form.requestSubmit()" style="width:4em;padding:4px;font-size:13px">
+              {% if a.score_source == 'ai' %}<span class="small muted">AI</span>{% endif %}
+            </form>
+          </td>
           <td>{{ a.referrer or '—' }}</td>
           <td><span class="badge {{ 'warn' if a.status == 'waitlisted' else ('bad' if a.status == 'declined' else '') }}">{{ a.status }}</span></td>
           <td>{% if a.suggest_gathering %}<span class="badge warn">invite to gathering</span>{% endif %}</td>
           <td class="muted">{{ a.created_at | ny_time("%b %-d") }}</td>
         </tr>
         {% else %}
-        <tr><td colspan="7" class="muted" style="text-align:center;padding:40px">No applications match.</td></tr>
+        <tr><td colspan="8" class="muted" style="text-align:center;padding:40px">No applications match.</td></tr>
         {% endfor %}
         </tbody>
       </table>

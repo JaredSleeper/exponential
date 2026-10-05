@@ -1,11 +1,13 @@
 """Public surface: homepage, expression of interest, invitation landing."""
 import re
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Form, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from .. import scoring
 from ..audit import audit
+from ..config import get_settings
 from ..db import get_db
 from ..emailer import queue_email
 from ..models import Application, Invitation
@@ -39,6 +41,7 @@ def apply_form(request: Request):
 @router.post("/apply")
 async def apply_submit(
     request: Request,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     name: str = Form(""),
     email: str = Form(""),
@@ -114,6 +117,8 @@ async def apply_submit(
         "sometimes starting with an invitation to a salon or dinner.\n\nWarmly,\nExponential",
     )
     db.commit()
+    if get_settings().scoring_enabled:
+        background_tasks.add_task(scoring.score_new_application, app_row.id)
     return redirect("/apply/done")
 
 

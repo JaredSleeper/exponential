@@ -17,15 +17,37 @@
       </select>
     </form>
 
+    <div style="margin-bottom:18px">
+      {% if scoring_enabled %}
+      <form method="post" action="/admin/scores/run" style="display:inline">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <input type="hidden" name="next" value="{{ request.url.path }}{% if request.url.query %}?{{ request.url.query }}{% endif %}">
+        <button class="btn btn-small btn-outline">Score unscored with AI</button>
+      </form>
+      {% else %}
+      <span class="small muted">AI scoring needs ANTHROPIC_API_KEY and EXA_API_KEY.</span>
+      {% endif %}
+    </div>
+
     <div class="card" style="padding:0;overflow:auto">
       <table class="t">
-        <thead><tr><th>Member</th><th>LinkedIn</th><th>Status</th><th>Cohost</th><th>Follow-up</th><th>Joined</th></tr></thead>
+        <thead><tr><th>Member</th><th>LinkedIn</th><th>
+          <a href="{% if sort_filter == 'score' %}/admin/members{% if status_filter %}?status={{ status_filter|urlencode }}{% endif %}{% else %}/admin/members?{% if status_filter %}status={{ status_filter|urlencode }}&amp;{% endif %}sort=score{% endif %}">Score</a>
+        </th><th>Status</th><th>Cohost</th><th>Follow-up</th><th>Joined</th></tr></thead>
         <tbody>
         {% for m, u, p in rows %}
         <tr>
           <td><a href="/admin/members/{{ u.id }}"><strong>{{ p.display_name if p and p.display_name else u.email }}</strong></a>
             <div class="small muted">{{ u.email }}{% if u.is_admin %} · admin{% endif %}</div></td>
           <td>{% if p and p.linkedin %}<a href="{{ p.linkedin }}" target="_blank" rel="noopener">{{ p.linkedin.split('linkedin.com/', 1)[-1].rstrip('/') }}</a>{% else %}—{% endif %}</td>
+          <td title="{{ m.score_reason if m.score_reason else '' }}">
+            <form method="post" action="/admin/members/{{ u.id }}/score" style="display:inline">
+              <input type="hidden" name="csrf" value="{{ csrf }}">
+              <input type="hidden" name="next" value="{{ request.url.path }}{% if request.url.query %}?{{ request.url.query }}{% endif %}">
+              <input type="number" name="score" min="1" max="10" step="1" value="{{ m.score if m.score is not none else '' }}" onchange="this.form.requestSubmit()" style="width:4em;padding:4px;font-size:13px">
+              {% if m.score_source == 'ai' %}<span class="small muted">AI</span>{% endif %}
+            </form>
+          </td>
           <td><span class="badge {{ '' if m.status == 'active' else ('warn' if m.status == 'invited' else 'dim') }}">{{ m.status }}</span>
             {% if p and not p.directory_visible %}<span class="badge dim">hidden</span>{% endif %}</td>
           <td>{{ m.welcome_cohost or '—' }}</td>
@@ -33,7 +55,7 @@
           <td class="muted">{{ m.created_at | ny_time("%b %-d") }}</td>
         </tr>
         {% else %}
-        <tr><td colspan="6" class="muted" style="text-align:center;padding:40px">No members yet.</td></tr>
+        <tr><td colspan="7" class="muted" style="text-align:center;padding:40px">No members yet.</td></tr>
         {% endfor %}
         </tbody>
       </table>

@@ -9,6 +9,8 @@ os.environ.update({
     "AUTH_PROVIDER": "dev",
     "EMAIL_PROVIDER": "console",
     "EMAIL_DISABLE_SENDS": "true",
+    "ANTHROPIC_API_KEY": "",
+    "EXA_API_KEY": "",
     "MEDIA_DIR": f"{_tmp}/media",
     "ADMIN_EMAILS": "admin@example.com",
     "MEMBER_CAP": "3",
