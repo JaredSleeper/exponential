@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import get_settings
-from .routers import admin, auth, media, member, onboarding, public
+from .routers import admin, api, auth, media, member, onboarding, public
 from .security import CSRF_COOKIE, CSRF_MAX_AGE
 from .web import render
 
@@ -33,7 +33,7 @@ async def lifespan(app):
 
 app = FastAPI(title="Exponential", docs_url=None, redoc_url=None, lifespan=lifespan)
 
-PRIVATE_PREFIXES = ("/members", "/directory", "/onboarding", "/admin", "/media", "/auth")
+PRIVATE_PREFIXES = ("/members", "/directory", "/onboarding", "/admin", "/media", "/auth", "/api")
 
 
 @app.middleware("http")
@@ -128,6 +128,7 @@ def robots():
 
 
 app.include_router(public.router)
+app.include_router(api.router)
 app.include_router(auth.router)
 app.include_router(onboarding.router)
 app.include_router(member.router)
