@@ -20,6 +20,7 @@ from ..emailer import queue_email, retry
 from ..images import ImageRejected, process_event_image
 from ..models import (
     APPLICATION_STATUSES,
+    SEAT_STATUSES,
     Application,
     AuditEvent,
     EmailMessage,
@@ -295,6 +296,12 @@ def application_make_member(
             application=application,
         )
     except admissions.AlreadyMemberError as exc:
+        db.rollback()
+        application = db.get(Application, app_id)
+        application.status = "member"
+        application.decided_by_id = user.id
+        application.decided_at = utcnow()
+        db.commit()
         existing = db.scalar(select(User).where(User.email == email))
         if existing:
             return redirect(f"/admin/members/{existing.id}", notice=str(exc))
@@ -416,6 +423,20 @@ async def invitation_create(
     email = normalize_email(email)
     if not EMAIL_RE.match(email):
         return redirect("/admin/invitations", error="Enter a valid email address.")
+
+    existing_user = db.scalar(select(User).where(User.email == email))
+    existing_member = db.get(Member, existing_user.id) if existing_user else None
+    if existing_member and existing_member.status in SEAT_STATUSES:
+        application = db.get(Application, application_id) if application_id else None
+        if application:
+            application.status = "member"
+            application.decided_by_id = user.id
+            application.decided_at = utcnow()
+        db.commit()
+        return redirect(
+            f"/admin/members/{existing_user.id}",
+            notice=f"{email} is already a member.",
+        )
 
     admissions.lock_cap(db)
     try:

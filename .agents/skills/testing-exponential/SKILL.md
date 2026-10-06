@@ -1,6 +1,6 @@
 ---
 name: testing-exponential
-description: How to run and test the Exponential member portal locally (env vars, dev OTP auth, CSRF quirks, invite/email flows on SQLite)
+description: How to run and test the Exponential member portal locally (env vars, dev OTP auth, CSRF, invite/email flows on SQLite)
 ---
 
 # Testing the Exponential member portal locally
@@ -15,13 +15,23 @@ description: How to run and test the Exponential member portal locally (env vars
 ## Dev auth (AUTH_PROVIDER=dev)
 - /auth/sign-in → enter email → 6-digit code is printed ON the verify page ("DEV MODE ... your code is NNNNNN") and in the server log via the console email adapter.
 
-## CSRF quirks (cookie-based double-submit, cookie name `exp_csrf`)
-- The middleware sets `exp_csrf` only when the request lacks it, so the FIRST form render in a fresh browser carries an empty csrf field and the first POST fails with `{"detail":"Bad CSRF token"}`. Reload the page and resubmit.
-- KNOWN BUG (pre-existing, not your change): the "New invitation" form in `app/templates/admin/invitations.html` lacks `<input type="hidden" name="csrf">`, so POST /admin/invitations always 403s. Workaround for testing: add the hidden input, or create the invitation directly (insert into `invitations` + `email_messages`, or resend an existing one).
+## CSRF (cookie-based double-submit, cookie name `exp_csrf`)
+- The middleware mints the token before rendering (`request.state.csrf`) and sets a 1-year cookie, so the first submit in a fresh browser should work. If a first submit in a fresh/incognito window ever 403s again, that is a regression; report it rather than working around it.
+- To simulate a stale token in the browser console: `document.cookie='exp_csrf=stale; path=/'` (the cookie is not httpOnly), or set a form's hidden `input[name=csrf]` value. `/apply` should then re-render with a 422, the message "Your session timed out…", and the answers preserved. Other forms in a browser should show a 403 HTML "This page has expired." page with a same-origin return link. Non-HTML clients (curl without `Accept: text/html`) still get JSON `{"detail":"Bad CSRF token"}`.
+- Read status codes with `performance.getEntriesByType('navigation')[0].responseStatus`.
+- `browser_console` sometimes returns `undefined` for multi-statement snippets. Use a single expression instead.
 
 ## Invite a fresh member (admin UI)
 - /admin/invitations → "Send invitation" → the link is in the invitation email's body_text: query `dev.db` `email_messages` table (`kind='invitation'`) — the console adapter's log line may not appear in uvicorn output. The /admin/email outbox lists emails but not bodies.
 - Open /invite/{token} signed out → "Continue with {email}" → dev sign-in → back on invite page → "Accept invitation as {email}" → /onboarding.
+
+## Manual member creation / "Make member" (admin)
+- /admin/members has a collapsed `<details>` "Add a member" card → POST /admin/members/new; application list rows and detail pages have "Make member" (JS `confirm()`; the harness shows the native dialog and Cancel/OK can be clicked).
+- The console email adapter marks emails `sent` immediately. Welcome email: kind `member_welcome`, subject "You're a member of Exponential". Read bodies from `email_messages.body_text` (no sqlite3 CLI; use `.venv/bin/python -c "import sqlite3; ..."`).
+- To test score copy, set `applications.score/score_source/score_reason` in the DB before converting. To test cap, set the cap in /admin/settings to the "N of M seats" value (settings refuses values below seats in use).
+- A member application hides the "Send membership invitation" card. Redeeming an application-linked invite marks the application "member", so its row no longer shows "Make member".
+- After a manual add, the member signs in with dev OTP and lands on /onboarding with name, intro and LinkedIn prefilled. "Skip for now" on the photo step → publish → /welcome; the directory shows a monogram.
+- Narrow check: `wmctrl -r :ACTIVE: -b remove,maximized_vert,maximized_horz && wmctrl -r :ACTIVE: -e 0,0,0,1000,1480` (real px on the 3200x2400 display, scale 2 → ~530 CSS px). Re-maximize afterwards.
 
 ## Testing required-field gates behind HTML `required`
 - Forms enforce `required` client-side too, so the browser blocks empty submission. To test SERVER-side rejection, submit with `document.querySelector('form[action="..."]').submit()` in the console — form.submit() skips constraint validation.
@@ -33,6 +43,12 @@ description: How to run and test the Exponential member portal locally (env vars
 - Watch for `<br class="desk">`-style responsive line breaks hidden at ≤720px: if the `<br>` is the only whitespace between words, hiding it fuses them ("acceleratingtechnological") and can overflow small viewports. Prefer a space plus `<br>` or `<span class="desk-break">`.
 - The omnibox autocompletes `localhost:8899/` to previously visited deeper paths; press Delete after typing the URL (before Enter) to drop the suggestion.
 - Seeded members (e.g. mara.chen) have no LinkedIn; since LinkedIn is required on /members/profile, add one before expecting "Profile saved.".
+
+## Browser harness gotchas
+- The Devin browser harness may strip `target` attributes from the live DOM (it adds `devinid` attrs), so `target="_blank"` links open in the SAME tab in the recorded Chrome. Prove the server sends the attribute with `fetch(location.href)` + DOMParser in the console, and prove new-tab behavior in a clean headless Playwright Chrome (`executable_path=/opt/.devin/chrome/chrome/linux-*/chrome-linux64/chrome`, dev sign-in via the on-page code, `ctx.expect_page()`).
+- If the CDP Chrome on :29229 disappears, relaunch it yourself: `DISPLAY=:0 setsid nohup <chrome> --remote-debugging-port=29229 --user-data-dir=$HOME/.config/google-chrome-for-testing --force-device-scale-factor=2 --start-maximized about:blank &`. Without the scale factor the 3200x2400 display renders unreadably small. Launch it in a separate exec from any `pkill -f`: a pkill pattern that matches its own command line kills the shell (exit -1).
+- xdotool `type` can drop `?` in URLs (`/admin/members?status=paused` became `/admin/membersstatus=paused` → 404). Use the page's own filter controls instead of typing query strings.
+- For "empty state spans full width" checks, compare `td.colSpan` and `td.getBoundingClientRect().width` against `thead tr` width.
 
 ## Misc
 - Onboarding profile fields render `value="None"` when DB columns are NULL (Jinja None leak) — clear inputs before typing.

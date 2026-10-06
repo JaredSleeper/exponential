@@ -1,4 +1,5 @@
 """Manual admin grants and applicant-to-member promotion."""
+import re
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
@@ -247,6 +248,112 @@ def test_existing_member_receives_notice_without_duplicate_or_welcome(fresh, db)
     assert response.headers["location"].startswith(f"/admin/members/{user.id}?notice=")
     assert "already a member" in redirect_param(response, "notice").lower()
     assert db.query(Member).filter_by(user_id=user.id).count() == 1
+    assert db.query(EmailMessage).filter_by(kind="member_welcome").count() == 0
+
+
+def test_inviting_member_with_application_does_not_create_invite(fresh, db):
+    from app.services.admissions import seats_used
+
+    admin = admin_client()
+    applicant = Application(
+        name="Already Member", email="already@example.com", working_on="x", why_join="y"
+    )
+    db.add(applicant)
+    db.commit()
+    admin.post(
+        f"/admin/applications/{applicant.id}/make-member",
+        data={"csrf": csrf(admin)},
+        follow_redirects=False,
+    )
+    user = db.query(User).filter_by(email="already@example.com").one()
+    seats_before = seats_used(db)
+
+    response = admin.post(
+        "/admin/invitations",
+        data={
+            "csrf": csrf(admin),
+            "email": "already@example.com",
+            "application_id": applicant.id,
+        },
+        follow_redirects=False,
+    )
+
+    db.refresh(applicant)
+    assert response.status_code == 303
+    assert response.headers["location"].startswith(f"/admin/members/{user.id}?notice=")
+    assert redirect_param(response, "notice") == "already@example.com is already a member."
+    assert db.query(Invitation).filter_by(email="already@example.com").count() == 0
+    assert applicant.status == "member"
+    assert seats_used(db) == seats_before
+
+
+def test_member_application_detail_hides_invitation_card(fresh, db):
+    admin = admin_client()
+    applicant = Application(
+        name="Already Member", email="already@example.com", working_on="x", why_join="y"
+    )
+    db.add(applicant)
+    db.commit()
+    admin.post(
+        f"/admin/applications/{applicant.id}/make-member",
+        data={"csrf": csrf(admin)},
+        follow_redirects=False,
+    )
+
+    response = admin.get(f"/admin/applications/{applicant.id}")
+
+    assert response.status_code == 200
+    assert "Already a member." in response.text
+    assert "Send membership invitation" not in response.text
+
+
+def test_redeemed_application_invite_stays_member_on_make_member_retry(fresh, db):
+    admin = admin_client()
+    applicant = Application(
+        name="Invited Applicant",
+        email="invited-applicant@example.com",
+        working_on="x",
+        why_join="y",
+    )
+    db.add(applicant)
+    db.commit()
+    response = admin.post(
+        "/admin/invitations",
+        data={
+            "csrf": csrf(admin),
+            "email": applicant.email,
+            "application_id": applicant.id,
+        },
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    invitation_email = db.query(EmailMessage).filter_by(
+        kind="invitation", to_email=applicant.email
+    ).one()
+    token = re.search(r"/invite/(\S+)", invitation_email.body_text).group(1)
+    member_client = TestClient(app, base_url="http://testserver")
+    sign_in(member_client, applicant.email)
+    response = member_client.post(
+        f"/invite/{token}/claim",
+        data={"csrf": csrf(member_client)},
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    db.refresh(applicant)
+    assert applicant.status == "member"
+
+    response = admin.post(
+        f"/admin/applications/{applicant.id}/make-member",
+        data={"csrf": csrf(admin), "send_welcome": "on"},
+        follow_redirects=False,
+    )
+
+    db.refresh(applicant)
+    assert response.status_code == 303
+    assert redirect_param(response, "notice") == (
+        "invited-applicant@example.com is already a member."
+    )
+    assert applicant.status == "member"
     assert db.query(EmailMessage).filter_by(kind="member_welcome").count() == 0
 
 

@@ -21,7 +21,7 @@ from ..audit import audit
 from ..config import get_settings
 from ..db import get_db
 from ..emailer import queue_email
-from ..models import Invitation, LoginCode, Member, User
+from ..models import Application, Invitation, LoginCode, Member, User
 from ..security import (
     clean_text,
     clear_session,
@@ -240,6 +240,10 @@ async def claim_invite(
     inv.status = "redeemed"
     inv.redeemed_by_id = user.id
     inv.redeemed_at = utcnow()
+    if inv.application_id:
+        application = db.get(Application, inv.application_id)
+        if application:
+            application.status = "member"
     audit(db, "invitation.redeemed", actor=user, target_type="invitation", target_id=inv.id,
           details={"email": inv.email})
     db.commit()
