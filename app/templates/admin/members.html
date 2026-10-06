@@ -17,6 +17,29 @@
       </select>
     </form>
 
+    <details class="card" style="margin:18px 0">
+      <summary>Add a member</summary>
+      <form method="post" action="/admin/members/new" style="margin-top:16px">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <label class="f" style="margin-top:0">Email</label>
+        <input type="email" name="email" required>
+        <label class="f">Name</label>
+        <input type="text" name="name">
+        <label class="f">LinkedIn</label>
+        <input type="text" name="linkedin" inputmode="url">
+        <label class="f">One-line intro</label>
+        <input type="text" name="headline">
+        <label class="f">Welcome note (optional)</label>
+        <textarea name="note" style="min-height:70px"></textarea>
+        <label class="f" style="display:flex;align-items:center;gap:8px">
+          <input type="checkbox" name="send_welcome" checked>
+          Email them a welcome with a sign-in link
+        </label>
+        <p class="hint">They hold a seat right away and finish their profile when they first sign in.</p>
+        <button class="btn btn-small" type="submit">Add member</button>
+      </form>
+    </details>
+
     <div style="margin-bottom:18px">
       {% if scoring_enabled %}
       <form method="post" action="/admin/scores/run" style="display:inline">

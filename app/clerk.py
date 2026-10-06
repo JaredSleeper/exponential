@@ -76,3 +76,35 @@ def fetch_verified_email(clerk_user_id: str) -> str:
                 raise RuntimeError("Primary email is not verified")
             return addr["email_address"].lower()
     raise RuntimeError("No verified primary email on Clerk user")
+
+
+def ensure_user(email: str, name: str = "") -> None:
+    """Ensure a Clerk account exists for a granted member."""
+    s = get_settings()
+    if not s.clerk_secret_key:
+        raise RuntimeError("CLERK_SECRET_KEY is not configured")
+    headers = {"Authorization": f"Bearer {s.clerk_secret_key}"}
+    response = httpx.get(
+        "https://api.clerk.com/v1/users",
+        headers=headers,
+        params={"email_address": email},
+        timeout=15,
+    )
+    response.raise_for_status()
+    if response.json():
+        return
+
+    payload = {"email_address": [email], "skip_password_requirement": True}
+    if name.strip():
+        name_parts = name.split(None, 1)
+        if name_parts[0]:
+            payload["first_name"] = name_parts[0]
+        if len(name_parts) > 1 and name_parts[1]:
+            payload["last_name"] = name_parts[1]
+    response = httpx.post(
+        "https://api.clerk.com/v1/users",
+        headers=headers,
+        json=payload,
+        timeout=15,
+    )
+    response.raise_for_status()
