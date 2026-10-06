@@ -59,7 +59,7 @@
               <input type="hidden" name="csrf" value="{{ csrf }}">
               <input type="hidden" name="send_welcome" value="on">
               <input type="hidden" name="next" value="{{ request.url.path }}{% if request.url.query %}?{{ request.url.query }}{% endif %}">
-              <button class="btn btn-small btn-outline" type="submit"
+              <button class="btn btn-small btn-outline" type="submit" style="white-space:nowrap"
                 onclick='return confirm("Make " + {{ a.name|tojson }} + " a member now?")'>Make member</button>
             </form>
             {% endif %}

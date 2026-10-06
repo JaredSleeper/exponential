@@ -58,6 +58,7 @@
           {% endif %}
         </div>
 
+        {% if a.status != "member" %}
         <div class="card">
           <h3>Send membership invitation</h3>
           <form method="post" action="/admin/invitations" style="margin-top:14px">
@@ -72,6 +73,7 @@
           <p class="small muted" style="margin-top:10px">Invitation: <span class="badge">{{ inv.status }}</span> sent {{ inv.sent_at | ny_time("%b %-d") if inv.sent_at }}</p>
           {% endfor %}
         </div>
+        {% endif %}
 
         <div class="card" style="margin-top:20px">
           <h3>Private admissions notes</h3>
