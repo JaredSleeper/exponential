@@ -42,7 +42,7 @@ class UTCDateTime(TypeDecorator):
 # admin grants status directly). `invited` = redeemed a seat, onboarding pending.
 MEMBER_STATUSES = ("invited", "active", "paused", "alumni", "declined")
 SEAT_STATUSES = ("invited", "active")  # consume a seat under the cap
-APPLICATION_STATUSES = ("new", "waitlisted", "invited", "declined")
+APPLICATION_STATUSES = ("new", "waitlisted", "invited", "declined", "member")
 
 
 class User(Base):

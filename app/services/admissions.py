@@ -12,11 +12,87 @@ from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from ..config import get_settings
-from ..models import SEAT_STATUSES, Invitation, Member, Setting, User
+from ..models import (
+    SEAT_STATUSES,
+    Application,
+    Invitation,
+    Member,
+    Profile,
+    Setting,
+    User,
+    utcnow,
+)
 
 
 class CapacityError(RuntimeError):
     pass
+
+
+class AlreadyMemberError(RuntimeError):
+    pass
+
+
+def grant_membership(
+    db: Session,
+    *,
+    email: str,
+    actor: User,
+    name: str = "",
+    linkedin: str = "",
+    headline: str = "",
+    application: Application | None = None,
+) -> tuple[User, Member]:
+    lock_cap(db)
+
+    user = db.scalar(select(User).where(User.email == email))
+    if user is None:
+        user = User(email=email)
+        db.add(user)
+        db.flush()
+
+    member = db.get(Member, user.id)
+    if member and member.status in SEAT_STATUSES:
+        raise AlreadyMemberError(f"{email} is already a member.")
+
+    db.execute(
+        update(Invitation)
+        .where(Invitation.email == email, Invitation.status == "pending")
+        .values(status="revoked")
+    )
+    db.flush()
+    require_capacity(db)
+
+    if member is None:
+        member = Member(user_id=user.id, status="invited")
+        db.add(member)
+        db.flush()
+    set_member_status(db, member, "invited", actor=actor)
+    member.approved_by_id = member.approved_by_id or actor.id
+    member.approved_at = member.approved_at or utcnow()
+
+    profile = db.get(Profile, user.id)
+    if profile is None:
+        profile = Profile(user_id=user.id)
+        db.add(profile)
+    if not profile.display_name and name:
+        profile.display_name = name[:120]
+    if not profile.linkedin and linkedin:
+        profile.linkedin = linkedin[:300]
+    if not profile.headline and headline:
+        profile.headline = headline[:200]
+
+    if application is not None:
+        application.status = "member"
+        application.decided_by_id = actor.id
+        application.decided_at = utcnow()
+        if application.score is not None and member.score is None:
+            member.score = application.score
+            member.score_source = application.score_source
+            member.score_reason = application.score_reason
+            member.scored_at = application.scored_at
+
+    db.flush()
+    return user, member
 
 
 def get_setting(db: Session, key: str, default: str = "") -> str:

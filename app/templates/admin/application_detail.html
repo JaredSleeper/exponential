@@ -37,6 +37,28 @@
 
       <div>
         <div class="card">
+          {% if a.status == "member" %}
+          <h3>Already a member.</h3>
+          {% if member_uid %}<p><a href="/admin/members/{{ member_uid }}">View member</a></p>{% endif %}
+          {% else %}
+          <h3>Make member</h3>
+          <form method="post" action="/admin/applications/{{ a.id }}/make-member" style="margin-top:14px">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <input type="hidden" name="next" value="/admin/applications/{{ a.id }}">
+            <label class="f" style="margin-top:0">Welcome note (optional)</label>
+            <textarea name="note" style="min-height:70px"></textarea>
+            <label class="f" style="display:flex;align-items:center;gap:8px">
+              <input type="checkbox" name="send_welcome" checked>
+              Email them a welcome with a sign-in link
+            </label>
+            <button class="btn btn-small" type="submit"
+              onclick='return confirm("Make " + {{ a.name|tojson }} + " a member now?")'>Make member</button>
+          </form>
+          <p class="hint">Skips the invitation link. They hold a seat right away.</p>
+          {% endif %}
+        </div>
+
+        <div class="card">
           <h3>Send membership invitation</h3>
           <form method="post" action="/admin/invitations" style="margin-top:14px">
             <input type="hidden" name="csrf" value="{{ csrf }}">

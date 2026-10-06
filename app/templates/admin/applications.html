@@ -34,7 +34,7 @@
       <table class="t">
         <thead><tr><th>Name</th><th>Email</th><th>LinkedIn</th><th>
           <a href="{% if sort_filter == 'score' %}/admin/applications{% if status_filter or referrer %}?{% endif %}{% if status_filter %}status={{ status_filter|urlencode }}{% endif %}{% if status_filter and referrer %}&amp;{% endif %}{% if referrer %}referrer={{ referrer|urlencode }}{% endif %}{% else %}/admin/applications?{% if status_filter %}status={{ status_filter|urlencode }}&amp;{% endif %}{% if referrer %}referrer={{ referrer|urlencode }}&amp;{% endif %}sort=score{% endif %}">Score</a>
-        </th><th>Referrer</th><th>Status</th><th>Flags</th><th>Applied</th></tr></thead>
+        </th><th>Referrer</th><th>Status</th><th>Flags</th><th>Applied</th><th></th></tr></thead>
         <tbody>
         {% for a in rows %}
         <tr>
@@ -53,9 +53,20 @@
           <td><span class="badge {{ 'warn' if a.status == 'waitlisted' else ('bad' if a.status == 'declined' else '') }}">{{ a.status }}</span></td>
           <td>{% if a.suggest_gathering %}<span class="badge warn">invite to gathering</span>{% endif %}</td>
           <td class="muted">{{ a.created_at | ny_time("%b %-d") }}</td>
+          <td>
+            {% if a.status != "member" %}
+            <form method="post" action="/admin/applications/{{ a.id }}/make-member">
+              <input type="hidden" name="csrf" value="{{ csrf }}">
+              <input type="hidden" name="send_welcome" value="on">
+              <input type="hidden" name="next" value="{{ request.url.path }}{% if request.url.query %}?{{ request.url.query }}{% endif %}">
+              <button class="btn btn-small btn-outline" type="submit"
+                onclick='return confirm("Make " + {{ a.name|tojson }} + " a member now?")'>Make member</button>
+            </form>
+            {% endif %}
+          </td>
         </tr>
         {% else %}
-        <tr><td colspan="8" class="muted" style="text-align:center;padding:40px">No applications match.</td></tr>
+        <tr><td colspan="9" class="muted" style="text-align:center;padding:40px">No applications match.</td></tr>
         {% endfor %}
         </tbody>
       </table>

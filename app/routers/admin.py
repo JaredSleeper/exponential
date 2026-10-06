@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy import desc, or_, select
 from sqlalchemy.orm import Session
 
-from .. import scoring
+from .. import clerk, scoring
 from ..audit import audit
 from ..config import get_settings
 from ..db import get_db
@@ -31,12 +31,20 @@ from ..models import (
     RemovalRequest,
     User,
 )
-from ..security import normalize_email, require_admin, sha256_hex, utcnow, verify_csrf
+from ..security import (
+    normalize_email,
+    normalize_url,
+    require_admin,
+    sha256_hex,
+    utcnow,
+    verify_csrf,
+)
 from ..services import admissions
 from ..services.admissions import get_setting, set_setting
 from ..site_copy import MAX_LEN, delete_copy, invalidate, set_copy, validate_key
 from ..storage import put
 from ..web import redirect, render
+from .public import LINKEDIN_RE
 
 router = APIRouter()
 NY = ZoneInfo("America/New_York")
@@ -47,6 +55,40 @@ Admin = Depends(require_admin)
 
 def _score_return_url(value: str, default: str) -> str:
     return value if value.startswith("/admin/") else default
+
+
+def _send_member_welcome(db: Session, user: User, name: str, note: str) -> EmailMessage:
+    first_name = name.strip().split(None, 1)[0] if name.strip() else "there"
+    body = (
+        f"Hi {first_name},\n\n"
+        "You're now a member of Exponential, a New York community of people building, "
+        "researching, and thoughtfully applying AI.\n\n"
+    )
+    if note.strip():
+        body += f"A note from your host:\n{note.strip()}\n\n"
+    body += (
+        f"To get started, sign in with this email address ({user.email}) and set up your profile:\n\n"
+        f"{get_settings().app_base_url.rstrip('/')}/auth/sign-in\n\n"
+        "You'll get a sign-in code by email. No password needed.\n\n"
+        "Warmly,\n"
+        "Exponential"
+    )
+    return queue_email(
+        db,
+        "member_welcome",
+        user.email,
+        "You're a member of Exponential",
+        body,
+    )
+
+
+def _welcome_notice(email: str, message: EmailMessage | None) -> str:
+    notice = f"{email} is now a member."
+    if message and message.status in ("sent", "skipped"):
+        notice += " Welcome email sent."
+    elif message and message.status == "failed":
+        notice += " The welcome email failed; retry it from Admin → Email."
+    return notice
 
 
 # ---------- dashboard ----------
@@ -211,13 +253,83 @@ def application_detail(app_id: str, request: Request, user: User = Admin,
     a = db.get(Application, app_id)
     if not a:
         return redirect("/admin/applications", error="Application not found.")
+    member_uid = db.scalar(select(User.id).where(User.email == normalize_email(a.email)))
     notes = list(db.scalars(select(PrivateNote).where(
         PrivateNote.subject_type == "application", PrivateNote.subject_id == app_id)
         .order_by(PrivateNote.created_at)))
     invites = list(db.scalars(select(Invitation).where(Invitation.application_id == app_id)
                               .order_by(desc(Invitation.created_at))))
     return render(request, "admin/application_detail.html", db=db, user=user, a=a,
-                  notes=notes, invites=invites)
+                  notes=notes, invites=invites, member_uid=member_uid)
+
+
+@router.post("/admin/applications/{app_id}/make-member")
+def application_make_member(
+    app_id: str,
+    user: User = Admin,
+    db: Session = Depends(get_db),
+    _=Depends(verify_csrf),
+    note: str = Form(""),
+    send_welcome: str = Form(""),
+    next: str = Form(""),
+):
+    application = db.get(Application, app_id)
+    if not application:
+        return redirect("/admin/applications", error="Application not found.")
+    target = _score_return_url(next, f"/admin/applications/{app_id}")
+    email = normalize_email(application.email)
+    if len(email) > 320 or not EMAIL_RE.match(email):
+        return redirect(target, error="Enter a valid email address.")
+    linkedin = normalize_url(application.linkedin)
+    if linkedin and not LINKEDIN_RE.match(linkedin):
+        return redirect(target, error="Use a LinkedIn profile URL, like linkedin.com/in/name.")
+
+    try:
+        member_user, member = admissions.grant_membership(
+            db,
+            email=email,
+            actor=user,
+            name=application.name,
+            linkedin=linkedin,
+            headline=application.role_company,
+            application=application,
+        )
+    except admissions.AlreadyMemberError as exc:
+        existing = db.scalar(select(User).where(User.email == email))
+        if existing:
+            return redirect(f"/admin/members/{existing.id}", notice=str(exc))
+        return redirect(target, notice=str(exc))
+    except admissions.CapacityError as exc:
+        db.rollback()
+        return redirect(target, error=str(exc))
+
+    if get_settings().auth_provider == "clerk":
+        try:
+            clerk.ensure_user(email, application.name)
+        except Exception as exc:  # noqa: BLE001
+            db.rollback()
+            return redirect(
+                target,
+                error=f"Couldn't create their sign-in account: {str(exc)[:200]}",
+            )
+
+    welcome = _send_member_welcome(db, member_user, application.name, note) \
+        if send_welcome == "on" else None
+    audit(
+        db,
+        "application.made_member",
+        actor=user,
+        target_type="application",
+        target_id=app_id,
+        details={
+            "email": email,
+            "user_id": member_user.id,
+            "welcome_sent": bool(welcome and welcome.status in ("sent", "skipped")),
+        },
+    )
+    db.commit()
+    return redirect(f"/admin/members/{member.user_id}",
+                    notice=_welcome_notice(email, welcome))
 
 
 @router.post("/admin/applications/{app_id}/status")
@@ -392,6 +504,74 @@ def members(request: Request, status: str = "", sort: str = "", user: User = Adm
                   seats=admissions.seats_used(db),
                   outstanding=admissions.outstanding_invitations(db),
                   sort_filter=sort, scoring_enabled=get_settings().scoring_enabled)
+
+
+@router.post("/admin/members/new")
+def member_create(
+    user: User = Admin,
+    db: Session = Depends(get_db),
+    _=Depends(verify_csrf),
+    email: str = Form(""),
+    name: str = Form(""),
+    linkedin: str = Form(""),
+    headline: str = Form(""),
+    note: str = Form(""),
+    send_welcome: str = Form(""),
+):
+    email = normalize_email(email)
+    if len(email) > 320 or not EMAIL_RE.match(email):
+        return redirect("/admin/members", error="Enter a valid email address.")
+    linkedin = normalize_url(linkedin)
+    if linkedin and not LINKEDIN_RE.match(linkedin):
+        return redirect(
+            "/admin/members",
+            error="Use a LinkedIn profile URL, like linkedin.com/in/name.",
+        )
+
+    try:
+        member_user, member = admissions.grant_membership(
+            db,
+            email=email,
+            actor=user,
+            name=name,
+            linkedin=linkedin,
+            headline=headline,
+        )
+    except admissions.AlreadyMemberError as exc:
+        existing = db.scalar(select(User).where(User.email == email))
+        if existing:
+            return redirect(f"/admin/members/{existing.id}", notice=str(exc))
+        return redirect("/admin/members", notice=str(exc))
+    except admissions.CapacityError as exc:
+        db.rollback()
+        return redirect("/admin/members", error=str(exc))
+
+    if get_settings().auth_provider == "clerk":
+        try:
+            clerk.ensure_user(email, name)
+        except Exception as exc:  # noqa: BLE001
+            db.rollback()
+            return redirect(
+                "/admin/members",
+                error=f"Couldn't create their sign-in account: {str(exc)[:200]}",
+            )
+
+    welcome = _send_member_welcome(db, member_user, name, note) \
+        if send_welcome == "on" else None
+    audit(
+        db,
+        "member.created_manually",
+        actor=user,
+        target_type="member",
+        target_id=member.user_id,
+        details={
+            "email": email,
+            "welcome_sent": bool(welcome and welcome.status in ("sent", "skipped")),
+        },
+    )
+    db.commit()
+    return redirect(f"/admin/members/{member.user_id}",
+                    notice=_welcome_notice(email, welcome))
 
 
 @router.post("/admin/members/{uid}/score")
