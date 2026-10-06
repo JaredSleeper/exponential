@@ -66,6 +66,9 @@ class Settings(BaseSettings):
     invite_ttl_days: int = 14
     login_code_ttl_minutes: int = 10
 
+    # --- Integrations ---
+    arronax_sync_token: str = ""
+
     # --- AI scoring ---
     anthropic_api_key: str = ""
     exa_api_key: str = ""
