@@ -317,7 +317,7 @@ def application_make_member(
             db.rollback()
             return redirect(
                 target,
-                error=f"Couldn't create their sign-in account: {str(exc)[:200]}",
+                error=f"Couldn't create their sign-in account: {str(exc)[:300]}",
             )
 
     welcome = _send_member_welcome(db, member_user, application.name, note) \
@@ -574,7 +574,7 @@ def member_create(
             db.rollback()
             return redirect(
                 "/admin/members",
-                error=f"Couldn't create their sign-in account: {str(exc)[:200]}",
+                error=f"Couldn't create their sign-in account: {str(exc)[:300]}",
             )
 
     welcome = _send_member_welcome(db, member_user, name, note) \
