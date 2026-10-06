@@ -7,6 +7,7 @@ the verified primary email via the Clerk Backend API (CLERK_SECRET_KEY).
 
 When AUTH_PROVIDER != 'clerk' none of this is used.
 """
+import logging
 import time
 
 import httpx
@@ -15,6 +16,7 @@ from jwt import PyJWKClient
 
 from .config import get_settings
 
+log = logging.getLogger(__name__)
 _jwks: PyJWKClient | None = None
 _jwks_at = 0.0
 
@@ -78,6 +80,39 @@ def fetch_verified_email(clerk_user_id: str) -> str:
     raise RuntimeError("No verified primary email on Clerk user")
 
 
+def _raise_for_clerk(response: httpx.Response, action: str) -> None:
+    if response.is_success:
+        return
+    detail = ""
+    try:
+        payload = response.json()
+        if isinstance(payload, dict):
+            errors = payload.get("errors") or []
+            if isinstance(errors, list):
+                messages = []
+                for error in errors:
+                    if isinstance(error, dict):
+                        message = (
+                            error.get("long_message")
+                            or error.get("message")
+                            or error.get("code", "")
+                        )
+                        if message:
+                            messages.append(str(message))
+                detail = "; ".join(messages)
+    except ValueError:
+        detail = response.text[:300]
+    log.warning(
+        "Clerk %s failed: %s %s",
+        action,
+        response.status_code,
+        detail or response.text[:300],
+    )
+    raise RuntimeError(
+        f"Clerk {action} failed ({response.status_code}): {detail or 'no details'}"
+    )
+
+
 def ensure_user(email: str, name: str = "") -> None:
     """Ensure a Clerk account exists for a granted member."""
     s = get_settings()
@@ -90,7 +125,7 @@ def ensure_user(email: str, name: str = "") -> None:
         params={"email_address": email},
         timeout=15,
     )
-    response.raise_for_status()
+    _raise_for_clerk(response, "lookup")
     if response.json():
         return
 
@@ -107,4 +142,4 @@ def ensure_user(email: str, name: str = "") -> None:
         json=payload,
         timeout=15,
     )
-    response.raise_for_status()
+    _raise_for_clerk(response, "create")

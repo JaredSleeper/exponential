@@ -475,8 +475,9 @@ def test_clerk_ensure_user_returns_when_account_exists(monkeypatch):
     calls = []
 
     class Response:
-        def raise_for_status(self):
-            pass
+        is_success = True
+        status_code = 200
+        text = ""
 
         def json(self):
             return [{"id": "user_123"}]
@@ -508,15 +509,16 @@ def test_clerk_ensure_user_creates_account_with_name(monkeypatch):
     post_calls = []
 
     class Response:
-        def raise_for_status(self):
-            pass
+        is_success = True
+        status_code = 200
+        text = ""
 
         def json(self):
             return []
 
     class PostResponse:
-        def raise_for_status(self):
-            pass
+        is_success = True
+        status_code = 200
 
     monkeypatch.setattr(clerk.httpx, "get", lambda *_args, **_kwargs: Response())
     monkeypatch.setattr(
@@ -540,3 +542,77 @@ def test_clerk_ensure_user_creates_account_with_name(monkeypatch):
             "timeout": 15,
         },
     )]
+
+
+def test_clerk_ensure_user_surfaces_validation_error(monkeypatch, caplog):
+    from app import clerk
+    from app.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "clerk_secret_key", "test-secret")
+
+    class LookupResponse:
+        is_success = True
+        status_code = 200
+        text = "[]"
+
+        def json(self):
+            return []
+
+    class ErrorResponse:
+        is_success = False
+        status_code = 422
+        text = (
+            '{"errors":[{"code":"form_param_format_invalid","message":"is invalid",'
+            '"long_message":"email_address must be a valid email address."}]}'
+        )
+
+        def json(self):
+            return {
+                "errors": [{
+                    "code": "form_param_format_invalid",
+                    "message": "is invalid",
+                    "long_message": "email_address must be a valid email address.",
+                }]
+            }
+
+    monkeypatch.setattr(clerk.httpx, "get", lambda *_args, **_kwargs: LookupResponse())
+    monkeypatch.setattr(clerk.httpx, "post", lambda *_args, **_kwargs: ErrorResponse())
+
+    with pytest.raises(RuntimeError) as exc_info:
+        ensure_user("invalid@example.com", "No Account")
+
+    assert "422" in str(exc_info.value)
+    assert "email_address must be a valid email address." in str(exc_info.value)
+    assert "email_address must be a valid email address." in caplog.text
+
+
+def test_clerk_ensure_user_surfaces_non_json_error(monkeypatch, caplog):
+    from app import clerk
+    from app.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "clerk_secret_key", "test-secret")
+
+    class LookupResponse:
+        is_success = True
+        status_code = 200
+
+        def json(self):
+            return []
+
+    class ErrorResponse:
+        is_success = False
+        status_code = 502
+        text = "Bad gateway"
+
+        def json(self):
+            raise ValueError("not JSON")
+
+    monkeypatch.setattr(clerk.httpx, "get", lambda *_args, **_kwargs: LookupResponse())
+    monkeypatch.setattr(clerk.httpx, "post", lambda *_args, **_kwargs: ErrorResponse())
+
+    with pytest.raises(RuntimeError) as exc_info:
+        ensure_user("ada@example.com", "Ada Lovelace")
+
+    assert "502" in str(exc_info.value)
+    assert "Bad gateway" in str(exc_info.value)
+    assert "Bad gateway" in caplog.text
